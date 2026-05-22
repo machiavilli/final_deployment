@@ -60,10 +60,12 @@ class RegistrationController extends AbstractController
                 UrlGeneratorInterface::ABSOLUTE_URL
             );
 
-            // Send verification email
-            $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
-
-            $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
+            try {
+                $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+                $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
+            } catch (\Throwable $e) {
+                $this->addFlash('warning', 'Account created, but we could not send the verification email. You can still sign in after an admin verifies your account, or try resending verification later.');
+            }
 
             return $this->redirectToRoute('app_login');
         }

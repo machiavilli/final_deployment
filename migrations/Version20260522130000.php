@@ -8,15 +8,15 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Auto-generated Migration: Please modify to your needs!
+ * Safety net for Railway deploys where api_token migration was skipped or failed.
  */
-final class Version20260408071222 extends AbstractMigration
+final class Version20260522130000 extends AbstractMigration
 {
     use MigrationHelpers;
 
     public function getDescription(): string
     {
-        return 'Add api_token column to user table';
+        return 'Ensure user.api_token column exists';
     }
 
     public function up(Schema $schema): void
@@ -26,7 +26,6 @@ final class Version20260408071222 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE `user` DROP api_token');
+        $this->dropColumnIfExists('user', 'api_token');
     }
 }

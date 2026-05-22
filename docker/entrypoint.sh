@@ -14,12 +14,11 @@ fi
 if [ ! -f .env ]; then
     if [ -n "${RAILWAY_ENVIRONMENT:-}${RAILWAY_PUBLIC_DOMAIN:-}" ]; then
         # Railway: do not bake in local Docker DB credentials
+        # Minimal .env — all secrets/URLs must come from Railway service variables
         cat > .env <<'EOF'
 APP_ENV=prod
 APP_DEBUG=0
-APP_SECRET=change_me_in_production
 TRUSTED_PROXIES=REMOTE_ADDR
-MAILER_DSN=null://null
 MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
 EOF
     elif [ -f docker/env.docker.dist ]; then
@@ -80,6 +79,16 @@ run_bootstrap() {
 
     echo "[bootstrap] Running migrations..."
     php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || true
+
+    if [ -n "${INITIAL_ADMIN_EMAIL:-}" ] && [ -n "${INITIAL_ADMIN_PASSWORD:-}" ]; then
+        echo "[bootstrap] Ensuring initial admin user (only when user table is empty)..."
+        php bin/console app:ensure-initial-admin \
+            --email="${INITIAL_ADMIN_EMAIL}" \
+            --password="${INITIAL_ADMIN_PASSWORD}" \
+            --username="${INITIAL_ADMIN_USERNAME:-admin}" \
+            --name="${INITIAL_ADMIN_NAME:-Admin}" \
+            --no-interaction || true
+    fi
 
     echo "[bootstrap] Installing bundle assets..."
     php bin/console assets:install public --env="${APP_ENV}" --no-interaction || true
