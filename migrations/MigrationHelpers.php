@@ -60,12 +60,16 @@ trait MigrationHelpers
         $columnEscaped = str_replace("'", "''", $column);
 
         $this->addSql(sprintf(
+            "SET @add_col_table_exists := (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '%s')",
+            $tableEscaped
+        ));
+        $this->addSql(sprintf(
             "SET @add_col_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
             $tableEscaped,
             $columnEscaped
         ));
         $this->addSql(sprintf(
-            "SET @add_col_sql := IF(@add_col_exists = 0, 'ALTER TABLE `%s` ADD %s', 'SELECT 1')",
+            "SET @add_col_sql := IF(@add_col_table_exists > 0 AND @add_col_exists = 0, 'ALTER TABLE `%s` ADD %s', 'SELECT 1')",
             $table,
             $columnDefinition
         ));
@@ -121,6 +125,26 @@ trait MigrationHelpers
         $this->addSql('PREPARE stmt_add_idx FROM @add_idx_sql');
         $this->addSql('EXECUTE stmt_add_idx');
         $this->addSql('DEALLOCATE PREPARE stmt_add_idx');
+    }
+
+    protected function modifyColumnIfExists(string $table, string $column, string $alterSql): void
+    {
+        $tableEscaped = str_replace("'", "''", $table);
+        $columnEscaped = str_replace("'", "''", $column);
+        $alterSqlEscaped = str_replace("'", "''", $alterSql);
+
+        $this->addSql(sprintf(
+            "SET @mod_col_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
+            $tableEscaped,
+            $columnEscaped
+        ));
+        $this->addSql(sprintf(
+            "SET @mod_col_sql := IF(@mod_col_exists > 0, '%s', 'SELECT 1')",
+            $alterSqlEscaped
+        ));
+        $this->addSql('PREPARE stmt_mod_col FROM @mod_col_sql');
+        $this->addSql('EXECUTE stmt_mod_col');
+        $this->addSql('DEALLOCATE PREPARE stmt_mod_col');
     }
 
     protected function dropColumnIfExists(string $table, string $column): void

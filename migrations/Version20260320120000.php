@@ -9,19 +9,20 @@ use Doctrine\Migrations\AbstractMigration;
 
 final class Version20260320120000 extends AbstractMigration
 {
+    use MigrationHelpers;
+
     public function getDescription(): string
     {
-        return '';
+        return 'Add product.stock column if missing (idempotent)';
     }
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE product ADD stock INT NOT NULL DEFAULT 0');
+        $this->addColumnIfNotExists('product', 'stock', 'stock INT NOT NULL DEFAULT 0');
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE product DROP stock');
+        $this->dropColumnIfExists('product', 'stock');
     }
 }
-
