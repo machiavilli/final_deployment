@@ -3,12 +3,35 @@ set -euo pipefail
 
 cd /app
 
+# Railway MySQL plugin exposes MYSQL_URL; Symfony expects DATABASE_URL
+if [ -z "${DATABASE_URL:-}" ] && [ -n "${MYSQL_URL:-}" ]; then
+    export DATABASE_URL="${MYSQL_URL}"
+fi
+if [ -z "${DATABASE_URL:-}" ] && [ -n "${MYSQL_PUBLIC_URL:-}" ]; then
+    export DATABASE_URL="${MYSQL_PUBLIC_URL}"
+fi
+
 if [ ! -f .env ]; then
-    if [ -f docker/env.docker.dist ]; then
+    if [ -n "${RAILWAY_ENVIRONMENT:-}${RAILWAY_PUBLIC_DOMAIN:-}" ]; then
+        # Railway: do not bake in local Docker DB credentials
+        cat > .env <<'EOF'
+APP_ENV=prod
+APP_DEBUG=0
+APP_SECRET=change_me_in_production
+TRUSTED_PROXIES=REMOTE_ADDR
+MAILER_DSN=null://null
+MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
+EOF
+    elif [ -f docker/env.docker.dist ]; then
         cp docker/env.docker.dist .env
     else
         touch .env
     fi
+fi
+
+# Real env vars must win over .env (remove local DATABASE_URL when Railway provides one)
+if [ -n "${DATABASE_URL:-}" ] && grep -q '^DATABASE_URL=' .env 2>/dev/null; then
+    sed -i '/^DATABASE_URL=/d' .env
 fi
 
 # Railway public URL for emails, OAuth, and absolute links
@@ -35,13 +58,25 @@ run_bootstrap() {
         return 0
     fi
 
+    if [ -z "${DATABASE_URL:-}" ]; then
+        echo "[bootstrap] DATABASE_URL is not set — skip migrations (set Railway MySQL → DATABASE_URL or MYSQL_URL)"
+        return 0
+    fi
+
     echo "[bootstrap] Waiting for database..."
+    db_ready=0
     for _ in $(seq 1 45); do
         if php bin/console doctrine:query:sql "SELECT 1" >/dev/null 2>&1; then
+            db_ready=1
             break
         fi
         sleep 2
     done
+
+    if [ "$db_ready" -ne 1 ]; then
+        echo "[bootstrap] Database not reachable — check DATABASE_URL / Railway MySQL credentials"
+        return 0
+    fi
 
     echo "[bootstrap] Running migrations..."
     php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || true
