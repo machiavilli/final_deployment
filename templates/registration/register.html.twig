@@ -108,6 +108,8 @@
         </div>
     {% endfor %}
 
+    {{ form_errors(registrationForm) }}
+
     {{ form_start(registrationForm, {'attr': {'style': 'display: flex; flex-direction: column; gap: 20px;'}}) }}
         {{ form_row(registrationForm.name, {
             'attr': {

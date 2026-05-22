@@ -13,12 +13,16 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+#[UniqueEntity(fields: ['email'], message: 'This email is already registered. Try signing in instead.')]
+#[UniqueEntity(fields: ['username'], message: 'This username is already taken. Please choose another.')]
 #[ApiResource(
     operations: [
         new Get(),
@@ -35,10 +39,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180)]
     #[Groups(['user:read'])]
+    #[Assert\NotBlank(message: 'Please enter your email.')]
+    #[Assert\Email(message: 'Please enter a valid email address.')]
     private ?string $email = null;
 
     #[ORM\Column(length: 180)]
     #[Groups(['user:read'])]
+    #[Assert\NotBlank(message: 'Please choose a username.')]
+    #[Assert\Length(min: 3, max: 180, minMessage: 'Username must be at least {{ limit }} characters.')]
     private ?string $username = null;
 
     /**

@@ -8,6 +8,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\EmailVerificationService;
 use App\Service\UserRoleResolver;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,7 +51,23 @@ class RegistrationController extends AbstractController
             }
 
             $entityManager->persist($user);
-            $entityManager->flush();
+
+            try {
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                $existing = $entityManager->getRepository(User::class)->findOneBy(['email' => $user->getEmail()])
+                    ?? $entityManager->getRepository(User::class)->findOneBy(['username' => $user->getUsername()]);
+
+                if ($existing && $existing->getEmail() === $user->getEmail()) {
+                    $this->addFlash('error', 'This email is already registered. Try signing in — your account may already exist from a previous attempt.');
+                } else {
+                    $this->addFlash('error', 'This username is already taken. Please choose another.');
+                }
+
+                return $this->render('registration/register.html.twig', [
+                    'registrationForm' => $form,
+                ]);
+            }
 
             $verificationUrl = $this->generateUrl(
                 'app_verify_email',
