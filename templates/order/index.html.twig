@@ -449,7 +449,7 @@
                 {% for order in orders %}
                     <tr>
                         <td>
-                            <span class="order-id">{{ order.orderNumber ?? '#' ~ order.id }}</span>
+                            <span class="order-id">{{ order.orderNumber ?? ('#' ~ order.id) }}</span>
                         </td>
                         <td>{% if order.customer %}{{ order.customer.name }}{% else %}N/A{% endif %}</td>
                         <td>{{ order.productName }}</td>
