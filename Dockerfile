@@ -55,10 +55,11 @@ COPY . .
 
 COPY --from=assets /app/public/build ./public/build
 
+# --no-scripts: symfony-cmd (from symfony/flex) is not available in prod (--no-dev) image builds
 RUN if [ "$INSTALL_DEV_DEPS" = "1" ]; then \
-      composer install --no-interaction --prefer-dist; \
+      composer install --no-interaction --prefer-dist --no-scripts; \
     else \
-      composer install --no-interaction --prefer-dist --no-dev; \
+      composer install --no-interaction --prefer-dist --no-dev --no-scripts; \
     fi \
     && composer dump-autoload --optimize --classmap-authoritative \
     && test -f vendor/autoload_runtime.php
@@ -77,5 +78,6 @@ EXPOSE 8080
 
 ENV PORT=8080
 ENV APP_ENV=prod
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

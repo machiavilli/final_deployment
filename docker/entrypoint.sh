@@ -46,6 +46,9 @@ run_bootstrap() {
     echo "[bootstrap] Running migrations..."
     php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || true
 
+    echo "[bootstrap] Installing bundle assets..."
+    php bin/console assets:install public --env="${APP_ENV}" --no-interaction || true
+
     echo "[bootstrap] Warming cache (${APP_ENV})..."
     php bin/console cache:clear --env="${APP_ENV}" --no-warmup || true
     php bin/console cache:warmup --env="${APP_ENV}" || true
