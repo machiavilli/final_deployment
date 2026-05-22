@@ -99,6 +99,11 @@ run_bootstrap() {
 
     chown -R www-data:www-data var 2>/dev/null || true
     echo "[bootstrap] Finished."
+
+    if [ "${RUN_MESSENGER_WORKER:-1}" = "1" ]; then
+        echo "[bootstrap] Starting async messenger worker (emails, notifications)..."
+        php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M --no-interaction &
+    fi
 }
 
 # Start nginx quickly; run slow tasks in background on Railway/production

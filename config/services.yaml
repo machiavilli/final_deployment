@@ -11,8 +11,10 @@ parameters:
     google_staff_allowed_emails: '%env(csv:default:google_staff_allowed_emails_default:GOOGLE_STAFF_ALLOWED_EMAILS)%'
     google_staff_allowed_emails_default: ''
     mailer_dsn_default: 'null://null'
+    mailer_enabled_default: 'false'
     mailer_from_email_default: 'noreply@example.com'
     mailer_from_name_default: 'MVLLI'
+    mailer_enabled: '%env(bool:default:mailer_enabled_default:MAILER_ENABLED)%'
     google_client_id_default: ''
     google_client_secret_default: ''
     cors_allow_origin_default: '^https?://.*'
@@ -44,6 +46,7 @@ services:
         arguments:
             $mailerFromEmail: '%env(default:mailer_from_email_default:MAILER_FROM_EMAIL)%'
             $mailerFromName: '%env(default:mailer_from_name_default:MAILER_FROM_NAME)%'
+            $mailerEnabled: '%mailer_enabled%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

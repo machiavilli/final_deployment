@@ -52,19 +52,26 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // do anything else you need here, like send an email
-            // Generate verification URL
             $verificationUrl = $this->generateUrl(
                 'app_verify_email',
                 ['token' => $verificationToken],
                 UrlGeneratorInterface::ABSOLUTE_URL
             );
 
+            $emailQueued = false;
             try {
-                $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
-                $this->addFlash('success', 'Registration successful! Please check your email to verify your account.');
-            } catch (\Throwable $e) {
-                $this->addFlash('warning', 'Account created, but we could not send the verification email. You can still sign in after an admin verifies your account, or try resending verification later.');
+                $emailQueued = $emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+            } catch (\Throwable) {
+                $emailQueued = false;
+            }
+
+            if (!$emailQueued) {
+                $user->setIsVerified(true);
+                $user->setVerificationToken(null);
+                $entityManager->flush();
+                $this->addFlash('success', 'Account created. You can log in now.');
+            } else {
+                $this->addFlash('success', 'Account created! Check your email to verify your account (you can log in after verifying).');
             }
 
             return $this->redirectToRoute('app_login');

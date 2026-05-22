@@ -92,12 +92,24 @@ class ApiRegistrationController extends AbstractController
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
-        // Send verification email
-        $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+        $emailQueued = false;
+        try {
+            $emailQueued = $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+        } catch (\Throwable) {
+            $emailQueued = false;
+        }
+
+        if (!$emailQueued) {
+            $user->setIsVerified(true);
+            $user->setVerificationToken(null);
+            $this->entityManager->flush();
+        }
 
         return new JsonResponse([
             'success' => true,
-            'message' => 'Registration successful. Please check your email to verify your account.',
+            'message' => $emailQueued
+                ? 'Registration successful. Please check your email to verify your account.'
+                : 'Registration successful. You can log in now.',
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),

@@ -15,6 +15,7 @@ class EmailVerificationService
         private MailerInterface $mailer,
         private readonly string $mailerFromEmail,
         private readonly string $mailerFromName,
+        private readonly bool $mailerEnabled,
     ) {}
 
     /**
@@ -24,12 +25,16 @@ class EmailVerificationService
     {
         return bin2hex(random_bytes(32));
     }
- 
+
     /**
-     * Send verification email to user
+     * Queue a verification email (async via Messenger). Returns false when mail is disabled.
      */
-    public function sendVerificationEmail(User $user, string $verificationUrl): void
+    public function sendVerificationEmail(User $user, string $verificationUrl): bool
     {
+        if (!$this->mailerEnabled) {
+            return false;
+        }
+
         $email = (new TemplatedEmail())
             ->from(new Address($this->mailerFromEmail, $this->mailerFromName))
             ->to(new Address($user->getEmail()))
@@ -41,6 +46,8 @@ class EmailVerificationService
             ]);
 
         $this->mailer->send($email);
+
+        return true;
     }
 
     /**
@@ -56,9 +63,8 @@ class EmailVerificationService
             return null;
         }
 
-        // Mark user as verified
         $user->setIsVerified(true);
-        $user->setVerificationToken(null); // Clear the token
+        $user->setVerificationToken(null);
 
         $this->entityManager->flush();
 
