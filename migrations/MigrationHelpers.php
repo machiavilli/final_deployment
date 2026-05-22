@@ -49,6 +49,24 @@ trait MigrationHelpers
         $this->addSql('DEALLOCATE PREPARE stmt_drop_idx');
     }
 
+    protected function createTableIfNotExists(string $table, string $createTableSql): void
+    {
+        $tableEscaped = str_replace("'", "''", $table);
+        $createTableSqlEscaped = str_replace("'", "''", $createTableSql);
+
+        $this->addSql(sprintf(
+            "SET @create_tbl_exists := (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '%s')",
+            $tableEscaped
+        ));
+        $this->addSql(sprintf(
+            "SET @create_tbl_sql := IF(@create_tbl_exists = 0, '%s', 'SELECT 1')",
+            $createTableSqlEscaped
+        ));
+        $this->addSql('PREPARE stmt_create_tbl FROM @create_tbl_sql');
+        $this->addSql('EXECUTE stmt_create_tbl');
+        $this->addSql('DEALLOCATE PREPARE stmt_create_tbl');
+    }
+
     protected function dropTableIfExists(string $table): void
     {
         $this->addSql(sprintf('DROP TABLE IF EXISTS `%s`', $table));
