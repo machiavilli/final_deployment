@@ -1,0 +1,1341 @@
+{% extends 'base_landing.html.twig' %}
+
+{% block title %}Home - MVLLI{% endblock %}
+
+{% block body %}
+<style>
+    /* ============================================================
+       DESIGN TOKENS — MODERN MINIMALISTIC
+    ============================================================ */
+    :root {
+        --primary:      #000000;
+        --primary-light: #1a1a1a;
+        --accent:       #2d4a2b;
+        --accent-light: #3a5a40;
+        --surface:      #ffffff;
+        --surface-off:  #fafafa;
+        --border:       rgba(45, 55, 72, 0.1);
+        --border-hover:  rgba(45, 55, 72, 0.2);
+        --text-primary: #000000;
+        --text-secondary: #6b7280;
+        --text-muted:   #9ca3af;
+        --text-subtle:  #d1d5db;
+        --radius-sm:    4px;
+        --radius-md:    8px;
+        --radius-lg:    12px;
+        --radius-xl:    16px;
+        --ease:         cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --font-serif:   'Playfair Display', 'Georgia', serif;
+        --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.15);
+        --shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ============================================================
+       KEYFRAMES
+    ============================================================ */
+    @keyframes heroFadeUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50%       { transform: translateY(-10px) rotate(0.5deg); }
+    }
+    @keyframes shimmerLine {
+        from { transform: scaleX(0); }
+        to   { transform: scaleX(1); }
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes ticker {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+    }
+
+    /* ============================================================
+       SCROLL REVEAL
+    ============================================================ */
+    .reveal, .reveal-l, .reveal-r {
+        opacity: 0;
+        transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+    }
+    .reveal    { transform: translateY(30px); }
+    .reveal-l  { transform: translateX(-30px); }
+    .reveal-r  { transform: translateX(30px); }
+    .reveal.on, .reveal-l.on, .reveal-r.on {
+        opacity: 1;
+        transform: none;
+    }
+    .d1 { transition-delay: 0.1s; }
+    .d2 { transition-delay: 0.22s; }
+    .d3 { transition-delay: 0.34s; }
+    .d4 { transition-delay: 0.46s; }
+
+    /* ============================================================
+       GLOBAL RESET / BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: var(--cream);
+        color: var(--ink);
+        font-family: var(--font-sans);
+    }
+
+    /* ============================================================
+       TICKER TAPE
+    ============================================================ */
+    .ticker {
+        background: var(--ink);
+        color: var(--gold);
+        height: 36px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        position: relative;
+        z-index: 10;
+    }
+    .ticker__inner {
+        display: flex;
+        white-space: nowrap;
+        animation: ticker 28s linear infinite;
+    }
+    .ticker__text {
+        font-family: var(--font-sans);
+        font-size: 0.6rem;
+        font-weight: 400;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        padding-right: 80px;
+    }
+    .ticker__sep { color: var(--gold-light); margin-right: 80px; }
+
+    /* ============================================================
+       HERO
+    ============================================================ */
+    .hero {
+        position: relative;
+        height: 100vh;
+        min-height: 700px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: hidden;
+        background: var(--primary);
+        color: var(--surface);
+    }
+
+    .hero__left {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 80px 64px;
+        z-index: 2;
+        background: linear-gradient(135deg, rgba(45, 55, 72, 0.1) 0%, transparent 100%);
+    }
+
+    .hero__right {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero__bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(45, 74, 43, 0.8) 0%, rgba(45, 74, 43, 0.6) 100%);
+        overflow: hidden;
+    }
+    
+    .hero__video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+    
+    .hero__video-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+            circle at center,
+            rgba(45, 74, 43, 0.3) 0%,
+            transparent 70%
+        );
+        z-index: 1;
+    }
+
+    .hero__right-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to left,
+            rgba(45, 55, 72, 0.4) 0%,
+            transparent 100%
+        );
+        z-index: 1;
+    }
+
+    .hero__vol {
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 32px;
+        animation: heroFadeUp 1s var(--ease) 0.1s both;
+    }
+
+    .hero__title {
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 5vw, 5.5rem);
+        font-weight: 400;
+        line-height: 1.1;
+        color: var(--surface);
+        animation: heroFadeUp 1s var(--ease) 0.3s both;
+        letter-spacing: -0.01em;
+        margin-bottom: 16px;
+    }
+
+    .hero__title em {
+        font-style: italic;
+        color: var(--gold-light);
+        display: block;
+    }
+
+    .hero__meta {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        margin-top: 48px;
+        animation: heroFadeUp 1s var(--ease) 0.55s both;
+    }
+
+    .hero__divider-v {
+        width: 1px;
+        height: 40px;
+        background: rgba(255,255,255,0.2);
+        flex-shrink: 0;
+    }
+
+    .hero__desc {
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: rgba(255,255,255,0.7);
+        max-width: 280px;
+        letter-spacing: 0.02em;
+        font-weight: 400;
+        text-transform: none;
+    }
+
+    .hero__actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 48px;
+        animation: heroFadeUp 1s var(--ease) 0.72s both;
+    }
+
+    .hero__issue {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        z-index: 2;
+        text-align: right;
+        animation: heroFadeUp 1s var(--ease) 0.9s both;
+    }
+    .hero__issue-num {
+        font-family: var(--font-display);
+        font-size: 5rem;
+        font-weight: 300;
+        color: rgba(255,255,255,0.08);
+        line-height: 1;
+        letter-spacing: -0.04em;
+    }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--font-sans);
+        font-size: 0.6rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        padding: 16px 32px;
+        transition: all 0.3s var(--ease);
+        cursor: pointer;
+        border: none;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn--solid {
+        background: var(--accent);
+        color: var(--primary);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--accent);
+    }
+    .btn--solid:hover {
+        background: var(--accent-light);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent-light);
+    }
+
+    .btn--outline {
+        background: transparent;
+        color: var(--primary);
+        border: 1px solid var(--border);
+        backdrop-filter: blur(8px);
+    }
+    .btn--outline:hover {
+        background: rgba(45, 55, 72, 0.05);
+        border-color: var(--accent);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn--brand {
+        background: var(--accent);
+        color: var(--primary);
+        border: 1px solid var(--accent);
+    }
+    .btn--brand:hover {
+        background: var(--accent-light);
+        color: var(--primary);
+        border-color: var(--accent-light);
+        transform: translateY(-2px);
+    }
+
+    .btn--ghost {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid rgba(10,10,8,0.25);
+    }
+    .btn--ghost:hover {
+        background: var(--ink);
+        color: var(--surface);
+        border-color: var(--ink);
+        transform: translateY(-2px);
+    }
+
+    /* ============================================================
+       SECTION WRAPPER
+    ============================================================ */
+    .section {
+        padding: 100px 0;
+    }
+    .section--off  { background: var(--surface-off); }
+    .section--white { background: var(--surface); }
+    .section--brand {
+        background: var(--primary);
+        color: #fff;
+        padding: 120px 0;
+    }
+    .section--accent { 
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+        color: var(--primary);
+        padding: 100px 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 48px;
+    }
+
+    /* ============================================================
+       SECTION HEADER
+    ============================================================ */
+    .section-header {
+        margin-bottom: 64px;
+    }
+    .section-header--center { text-align: center; }
+
+    .section-header__tag {
+        display: inline-block;
+        font-family: var(--font-sans);
+        font-size: 0.55rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 12px;
+        padding: 6px 12px;
+        background: rgba(45, 55, 72, 0.08);
+        border-radius: var(--radius-sm);
+    }
+
+    .section-header__title {
+        font-family: var(--font-display);
+        font-size: clamp(2.6rem, 5vw, 4.2rem);
+        font-weight: 300;
+        color: var(--ink);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+    }
+
+    .section-header__sub {
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 300;
+        color: var(--ash);
+        line-height: 1.9;
+        max-width: 440px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .section-header--center .section-header__sub { margin: 0 auto; }
+
+    .section-header__rule {
+        width: 40px;
+        height: 1px;
+        background: var(--gold);
+        margin-top: 24px;
+        transform-origin: left center;
+        animation: none;
+    }
+    .section-header--center .section-header__rule { margin: 24px auto 0; }
+    .section-header.on .section-header__rule {
+        animation: shimmerLine 0.8s var(--ease) 0.4s both;
+    }
+
+    /* ============================================================
+       PRODUCT CARDS — EDITORIAL GRID
+    ============================================================ */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .product-card {
+        background: var(--surface);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        transition: all 0.3s var(--ease);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+    }
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--accent);
+    }
+
+    .product-card__img-wrap {
+        overflow: hidden;
+        aspect-ratio: 4/5;
+        position: relative;
+        background: var(--surface-off);
+    }
+    .product-card__img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s var(--ease);
+        filter: brightness(0.95);
+    }
+    .product-card:hover .product-card__img-wrap img {
+        transform: scale(1.05);
+        filter: brightness(1);
+    }
+
+    .product-card__badge {
+        position: absolute;
+        top: 16px;
+        left: 0;
+        font-family: var(--font-sans);
+        font-size: 0.55rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        background: var(--gold);
+        color: var(--ink);
+        padding: 5px 14px;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.35s ease;
+    }
+    .product-card:hover .product-card__badge { opacity: 1; transform: translateX(0); }
+
+    .product-card__body {
+        padding: 24px 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid var(--border);
+    }
+
+    .product-card__name {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 400;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+    }
+
+    .product-card__desc {
+        font-family: var(--font-sans);
+        font-size: 0.68rem;
+        font-weight: 300;
+        color: var(--ash);
+        line-height: 1.7;
+        flex: 1;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    .product-card__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .product-card__price {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 300;
+        color: var(--gold);
+        letter-spacing: 0;
+    }
+
+    .product-card__link {
+        font-family: var(--font-sans);
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: var(--ink);
+        text-decoration: none;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-bottom: 1px solid var(--ink);
+        padding-bottom: 1px;
+        transition: color 0.2s ease, border-color 0.2s ease, gap 0.25s ease;
+    }
+    .product-card__link:hover { color: var(--gold); border-color: var(--gold); gap: 10px; }
+
+    /* ============================================================
+       SERVICE CARDS — VERTICAL EDITORIAL
+    ============================================================ */
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2px;
+        background: var(--smoke);
+        border: 1px solid var(--smoke);
+    }
+
+    .service-card {
+        background: var(--surface);
+        overflow: hidden;
+        transition: background 0.3s ease;
+    }
+    .service-card:hover { background: var(--gold-pale); }
+
+    .service-card__img {
+        aspect-ratio: 16/10;
+        overflow: hidden;
+        background: var(--parchment);
+    }
+    .service-card__img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(0.25);
+        transition: transform 0.8s var(--ease), filter 0.5s ease;
+    }
+    .service-card:hover .service-card__img img {
+        transform: scale(1.06);
+        filter: grayscale(0);
+    }
+
+    .service-card__body {
+        padding: 36px 32px 40px;
+        border-top: 1px solid var(--smoke);
+    }
+
+    .service-card__number {
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-weight: 300;
+        color: var(--smoke);
+        line-height: 1;
+        margin-bottom: 16px;
+        letter-spacing: -0.04em;
+        transition: color 0.3s ease;
+    }
+    .service-card:hover .service-card__number { color: var(--gold-light); }
+
+    .service-card__title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: var(--ink);
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
+    }
+
+    .service-card__desc {
+        font-family: var(--font-sans);
+        font-size: 0.68rem;
+        font-weight: 300;
+        color: var(--ash);
+        line-height: 1.9;
+        margin-bottom: 28px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .arrow-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-sans);
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: var(--ink);
+        text-decoration: none;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--ink);
+        padding-bottom: 2px;
+        transition: gap 0.25s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .arrow-link:hover { gap: 14px; color: var(--gold); border-color: var(--gold); }
+
+    /* ============================================================
+       PROMO BANNER
+    ============================================================ */
+    .promo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        min-height: 500px;
+        overflow: hidden;
+    }
+
+    .promo__content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 80px 64px;
+        order: 2;
+        border-left: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .promo__eyebrow {
+        font-family: var(--font-sans);
+        font-size: 0.58rem;
+        font-weight: 600;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 24px;
+    }
+
+    .promo__title {
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 5vw, 5.5rem);
+        font-weight: 300;
+        line-height: 0.95;
+        color: var(--surface);
+        margin-bottom: 12px;
+        letter-spacing: -0.03em;
+    }
+
+    .promo__title span {
+        display: block;
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 300;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.4);
+        margin-top: 16px;
+    }
+
+    .promo__desc {
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        font-weight: 300;
+        color: rgba(255,255,255,0.5);
+        line-height: 1.9;
+        margin-bottom: 40px;
+        max-width: 340px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-top: 24px;
+    }
+
+    .promo__img-wrap {
+        overflow: hidden;
+        position: relative;
+    }
+    .promo__img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(0.2) contrast(1.05);
+        transition: transform 8s ease, filter 0.5s ease;
+        animation: float 9s ease-in-out infinite;
+    }
+    .promo__img-wrap:hover img {
+        animation-play-state: paused;
+        transform: scale(1.03);
+        filter: grayscale(0);
+    }
+
+    /* ============================================================
+       TESTIMONIAL
+    ============================================================ */
+    .testimonial-wrap {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .testimonial {
+        position: relative;
+        padding: 72px 80px;
+        border: 1px solid var(--smoke);
+        background: var(--surface);
+        transition: box-shadow 0.4s ease, transform 0.4s ease;
+    }
+    .testimonial::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 3px;
+        height: 100%;
+        background: var(--gold);
+    }
+    .testimonial:hover {
+        box-shadow: 0 24px 64px rgba(10,10,8,0.08);
+        transform: translateY(-4px);
+    }
+
+    .testimonial__mark {
+        font-family: var(--font-display);
+        font-size: 8rem;
+        line-height: 0.8;
+        color: var(--gold-pale);
+        position: absolute;
+        top: 40px;
+        left: 64px;
+        user-select: none;
+    }
+
+    .testimonial__stars {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 32px;
+    }
+    .testimonial__stars i { color: var(--gold); font-size: 0.75rem; }
+
+    .testimonial__quote {
+        font-family: var(--font-display);
+        font-size: 1.45rem;
+        line-height: 1.65;
+        color: var(--ink);
+        font-style: italic;
+        font-weight: 300;
+        margin-bottom: 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .testimonial__author {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding-top: 28px;
+        border-top: 1px solid var(--smoke);
+    }
+
+    .testimonial__avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        filter: grayscale(0.3);
+        border: 1px solid var(--smoke);
+    }
+
+    .testimonial__name {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 400;
+        color: var(--ink);
+        margin-bottom: 2px;
+    }
+
+    .testimonial__role {
+        font-family: var(--font-sans);
+        font-size: 0.6rem;
+        font-weight: 300;
+        color: var(--ash);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    /* ============================================================
+       PET CLUB BANNER
+    ============================================================ */
+    .club-banner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        min-height: 480px;
+        overflow: hidden;
+    }
+
+    .club-banner__content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 80px 72px;
+        border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .club-banner__logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(184,151,90,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        border: 2px solid rgba(184,151,90,0.35);
+        overflow: hidden;
+        transition: background 0.3s ease, transform 0.4s var(--ease);
+        cursor: pointer;
+    }
+    .club-banner__logo:hover {
+        background: rgba(184,151,90,0.22);
+        transform: scale(1.08);
+    }
+    .club-banner__logo img {
+        width: 140%;
+        height: 140%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .club-banner__tag {
+        font-family: var(--font-sans);
+        font-size: 0.58rem;
+        font-weight: 600;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 16px;
+    }
+
+    .club-banner__title {
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 3vw, 2.8rem);
+        font-weight: 300;
+        line-height: 1.2;
+        color: var(--surface);
+        margin-bottom: 36px;
+        max-width: 360px;
+        letter-spacing: -0.01em;
+    }
+
+    .club-banner__img {
+        overflow: hidden;
+        position: relative;
+    }
+    .club-banner__img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(0.15);
+        transition: transform 0.8s var(--ease), filter 0.5s ease;
+    }
+    .club-banner__img:hover img {
+        transform: scale(1.04);
+        filter: grayscale(0);
+    }
+
+    /* ============================================================
+       DARK SECTION TEXT OVERRIDES
+    ============================================================ */
+    .section--brand .section-header__title { color: var(--surface); }
+    .section--brand .section-header__sub { color: rgba(255,255,255,0.45); }
+    .section--brand .section-header__tag { color: var(--gold); }
+    .section--brand .section-header__rule { background: var(--gold); }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1024px) {
+        .card-grid { grid-template-columns: repeat(2, 1fr); }
+        .service-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 900px) {
+        .container { padding: 0 32px; }
+        .section { padding: 80px 0; }
+        .hero { grid-template-columns: 1fr; min-height: 100vh; }
+        .hero__left { padding: 60px 32px; }
+        .hero__right { position: absolute; inset: 0; z-index: 0; }
+        .hero__left { z-index: 2; background: linear-gradient(to top, rgba(10,10,8,0.92) 0%, rgba(10,10,8,0.5) 100%); }
+        .promo { grid-template-columns: 1fr; }
+        .promo__content { padding: 60px 40px; }
+        .club-banner { grid-template-columns: 1fr; }
+        .club-banner__content { padding: 60px 40px; }
+        .testimonial { padding: 48px 40px; }
+    }
+
+    @media (max-width: 600px) {
+        .card-grid { grid-template-columns: 1fr; }
+        .service-grid { grid-template-columns: 1fr; }
+        .hero__title { font-size: 3rem; }
+        .section-header__title { font-size: 2.2rem; }
+        .promo__title { font-size: 2.8rem; }
+        .testimonial { padding: 36px 24px; }
+        .testimonial__mark { left: 20px; }
+    }
+</style>
+
+<!-- ============================================================
+     TICKER TAPE
+============================================================ -->
+<div class="ticker" aria-hidden="true">
+    <div class="ticker__inner">
+        <span class="ticker__text">New Arrivals Daily &nbsp;<span class="ticker__sep">—</span>&nbsp; Premium Collections &nbsp;<span class="ticker__sep">—</span>&nbsp; Free Shipping Over $100 &nbsp;<span class="ticker__sep">—</span>&nbsp; Luxury Fashion &nbsp;<span class="ticker__sep">—</span>&nbsp; Est. 2025</span>
+        <span class="ticker__text">New Arrivals Daily &nbsp;<span class="ticker__sep">—</span>&nbsp; Premium Collections &nbsp;<span class="ticker__sep">—</span>&nbsp; Free Shipping Over $100 &nbsp;<span class="ticker__sep">—</span>&nbsp; Luxury Fashion &nbsp;<span class="ticker__sep">—</span>&nbsp; Est. 2025</span>
+    </div>
+</div>
+
+<!-- ============================================================
+     HERO
+============================================================ -->
+<section class="hero">
+    <div class="hero__left">
+        <p class="hero__vol">MVLLI &mdash; Collection 2025</p>
+        <h1 class="hero__title">
+            Define<br>your<br><em>style</em>.
+        </h1>
+        <div class="hero__meta">
+            <div class="hero__divider-v"></div>
+            <p class="hero__desc">Fashion collections, premium materials, and timeless designs — everything you need to express your unique style.</p>
+        </div>
+        <div class="hero__actions">
+            {% if app.user %}
+                <a href="{{ path('app_product_index') }}" class="btn btn--solid">
+                    <i class="fas fa-shopping-bag"></i> Browse Products
+                </a>
+                <a href="{{ path('app_order_index') }}" class="btn btn--outline">
+                    <i class="fas fa-clipboard-list"></i> View Orders
+                </a>
+            {% else %}
+                <a href="{{ path('app_register') }}" class="btn btn--solid">
+                    <i class="fas fa-shopping-bag"></i> Shop Now!
+                </a>
+            {% endif %}
+        </div>
+        <div class="hero__issue">
+            <div class="hero__issue-num">01</div>
+        </div>
+    </div>
+    <div class="hero__right">
+        <video class="hero__video" autoplay muted loop playsinline>
+            <source src="{{ asset('video/hero-video.mp4') }}" type="video/mp4">
+            <source src="{{ asset('video/hero-video.webm') }}" type="video/webm">
+            Your browser does not support the video tag.
+        </video>
+        <div class="hero__video-overlay"></div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TRENDING
+============================================================ -->
+<section class="section section--off">
+    <div class="container">
+        <div class="section-header section-header--center reveal">
+            <h2 class="section-header__title">Fashion Categories</h2>
+            <p class="section-header__sub">Our most-loved collections this season, chosen for style and your fashion journey.</p>
+            <div class="section-header__rule"></div>
+        </div>
+
+        <div class="card-grid">
+            <a href="{{ path('app_products') }}" class="product-card reveal d1" style="text-decoration: none; color: inherit;">
+                <div class="product-card__img-wrap">
+                    <img src="{{ asset('image/tops.jpg') }}" alt="Tops Collection">
+                    <span class="product-card__badge">Trending</span>
+                </div>
+                <div class="product-card__body">
+                    <p class="product-card__name">Tops</p>
+                    <p class="product-card__desc">Premium quality shirts and blouses for everyday style.</p>
+                    <div class="product-card__footer">
+                        <span class="product-card__link">Shop Now <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ path('app_products') }}" class="product-card reveal d2" style="text-decoration: none; color: inherit;">
+                <div class="product-card__img-wrap">
+                    <img src="{{ asset('image/jeans.jpg') }}" alt="Bottoms Collection">
+                    <span class="product-card__badge">Trending</span>
+                </div>
+                <div class="product-card__body">
+                    <p class="product-card__name">Bottoms</p>
+                    <p class="product-card__desc">Stylish pants and skirts designed for comfort and elegance.</p>
+                    <div class="product-card__footer">
+                        <span class="product-card__link">Shop Now <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ path('app_products') }}" class="product-card reveal d3" style="text-decoration: none; color: inherit;">
+                <div class="product-card__img-wrap">
+                    <img src="{{ asset('image/bags.jpg') }}" alt="Bags Collection">
+                    <span class="product-card__badge">Trending</span>
+                </div>
+                <div class="product-card__body">
+                    <p class="product-card__name">Bags</p>
+                    <p class="product-card__desc">Luxury handbags and totes for every occasion.</p>
+                    <div class="product-card__footer">
+                        <span class="product-card__link">Shop Now <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ path('app_products') }}" class="product-card reveal d4" style="text-decoration: none; color: inherit;">
+                <div class="product-card__img-wrap">
+                    <img src="{{ asset('image/accessories.jpg') }}" alt="Accessories Collection">
+                    <span class="product-card__badge">Trending</span>
+                </div>
+                <div class="product-card__body">
+                    <p class="product-card__name">Accessories</p>
+                    <p class="product-card__desc">Elegant jewelry and scarves to complete your look.</p>
+                    <div class="product-card__footer">
+                        <span class="product-card__link">Shop Now <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     PROMO BANNER
+============================================================ -->
+<section class="section section--brand" style="padding: 0;">
+    <div class="promo">
+        <div class="promo__content reveal-l">
+            <p class="promo__eyebrow">Limited Time</p>
+            <h2 class="promo__title">
+                55% Off
+                <span>Premium fashion collections — this week only.</span>
+            </h2>
+            <p class="promo__desc">
+                Curated fashion collections at exceptional prices. Discover premium designs and timeless styles that define your unique look.
+            </p>
+            {% if app.user %}
+                <a href="{{ path('app_product_index') }}" class="btn btn--solid">
+                    <i class="fas fa-tag"></i> Shop the Sale
+                </a>
+            {% else %}
+                <a href="{{ path('app_register') }}" class="btn btn--solid">
+                    <i class="fas fa-user-plus"></i> Join &amp; Save
+                </a>
+            {% endif %}
+        </div>
+        <div class="promo__img-wrap reveal-r">
+            <img src="{{ asset('image/sale-offer.avif') }}" alt="Sale offer">
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     STYLE GUIDE
+============================================================ -->
+<section class="section section--off">
+    <div class="container">
+        <div class="section-header section-header--center reveal">
+            <span class="section-header__tag">Style Guide</span>
+            <h2 class="section-header__title">Fashion Inspiration</h2>
+            <p class="section-header__sub">Discover the latest trends and styling tips from our fashion experts.</p>
+            <div class="section-header__rule"></div>
+        </div>
+
+        <div class="style-grid">
+            <div class="style-card reveal d1">
+                <div class="style-card__img">
+                    <img src="{{ asset('image/casual-chic.avif') }}" alt="Casual Chic">
+                    <div class="style-card__overlay">
+                        <span class="style-card__season">Spring 2025</span>
+                        <h3 class="style-card__title">Casual Chic</h3>
+                    </div>
+                </div>
+                <div class="style-card__content">
+                    <p class="style-card__desc">Effortless everyday style with premium basics and statement pieces.</p>
+                    <a href="{{ path('app_products') }}" class="style-card__link">Explore Look <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="style-card reveal d2">
+                <div class="style-card__img">
+                    <img src="{{ asset('image/office-glam.webp') }}" alt="Office Elegance">
+                    <div class="style-card__overlay">
+                        <span class="style-card__season">Spring 2025</span>
+                        <h3 class="style-card__title">Office Elegance</h3>
+                    </div>
+                </div>
+                <div class="style-card__content">
+                    <p class="style-card__desc">Professional sophistication with modern silhouettes and refined details.</p>
+                    <a href="{{ path('app_products') }}" class="style-card__link">Explore Look <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="style-card reveal d3">
+                <div class="style-card__img">
+                    <img src="{{ asset('image/weekend.jpg') }}" alt="Weekend Glam">
+                    <div class="style-card__overlay">
+                        <span class="style-card__season">Spring 2025</span>
+                        <h3 class="style-card__title">Weekend Glam</h3>
+                    </div>
+                </div>
+                <div class="style-card__content">
+                    <p class="style-card__desc">Bold statements and luxurious pieces for your social moments.</p>
+                    <a href="{{ path('app_products') }}" class="style-card__link">Explore Look <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.style-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-top: 60px;
+}
+
+.style-card {
+    background: var(--surface);
+    overflow: hidden;
+    transition: all 0.3s var(--ease);
+    display: flex;
+    flex-direction: column;
+}
+
+.style-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.style-card__img {
+    position: relative;
+    aspect-ratio: 4/5;
+    overflow: hidden;
+}
+
+.style-card__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease);
+}
+
+.style-card:hover .style-card__img img {
+    transform: scale(1.05);
+}
+
+.style-card__overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    padding: 24px;
+    color: white;
+}
+
+.style-card__season {
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.style-card__title {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.style-card__content {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.style-card__desc {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.style-card__link {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.3s ease;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+}
+
+.style-card__link:hover {
+    gap: 12px;
+    border-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+    .style-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<!-- ============================================================
+     SERVICES
+============================================================ -->
+<section class="section section--off">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="section-header__tag">MVLLI Services</span>
+            <h2 class="section-header__title">Fashion Excellence<br>&amp; Style</h2>
+            <p class="section-header__sub">From personalized styling to expert fashion advice, we're here to support your style journey at every step.</p>
+            <div class="section-header__rule"></div>
+        </div>
+
+        <div class="fashion-video-section">
+            <video class="fashion-video" autoplay muted loop playsinline>
+                <source src="{{ asset('video/house.mp4') }}" type="video/mp4">
+                <source src="{{ asset('video/fashion-showcase.webm') }}" type="video/webm">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+</section>
+
+<style>
+.fashion-video-section {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    margin: 60px 0;
+}
+
+.fashion-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .fashion-video-section {
+        height: 400px;
+        margin: 40px 0;
+    }
+}
+</style>
+
+<!-- ============================================================
+     PET CLUB BANNER
+============================================================ -->
+<section class="section section--brand" style="padding: 0;">
+    <div class="club-banner">
+        <div class="club-banner__content reveal-l">
+            <div class="club-banner__logo">
+                <img src="{{ asset('image/logoMVLLI.png') }}" alt="MVLLI">
+            </div>
+            <p class="club-banner__tag">MACHIAVILLI</p>
+            <h2 class="club-banner__title">
+                Elevate your style with exclusive designs — join MVLLI.
+            </h2>
+            <a href="#" class="btn btn--solid">
+                Join MVLLI <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="club-banner__img reveal-r">
+            <img src="{{ asset('image/fashiondesigner.jpg') }}" alt="Fashion Designer">
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (e.isIntersecting) {
+                e.target.classList.add('on');
+                io.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+    document.querySelectorAll('.reveal, .reveal-l, .reveal-r, .section-header').forEach(function (el) {
+        io.observe(el);
+    });
+})();
+</script>
+{% endblock %}

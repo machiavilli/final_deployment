@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Verify Your Email - MVLLI</title>
+		<style>
+			body {
+				font-family: 'Inter', sans-serif;
+				background-color: #f5f5f5;
+				margin: 0;
+				padding: 20px;
+				color: #1a1a1a;
+			}
+			.container {
+				max-width: 600px;
+				margin: 0 auto;
+				background: white;
+				border-radius: 16px;
+				padding: 40px;
+				box-shadow: 0 4px 20px rgba(45, 74, 43, 0.1);
+				border: 1px solid rgba(45, 74, 43, 0.1);
+			}
+			.header {
+				text-align: center;
+				margin-bottom: 30px;
+			}
+			.logo {
+				font-size: 2rem;
+				font-weight: 800;
+				color: #2d4a2b;
+				margin-bottom: 10px;
+				font-family: 'Playfair Display', serif;
+			}
+			.welcome-text {
+				font-size: 1.2rem;
+				color: #666;
+				margin-bottom: 30px;
+			}
+			.verify-button {
+				display: inline-block;
+				padding: 14px 32px;
+				background: linear-gradient(135deg, #2d4a2b 0%, #3a5a40 100%);
+				color: white;
+				text-decoration: none;
+				border-radius: 12px;
+				font-weight: 600;
+				font-size: 1rem;
+				transition: all 0.3s ease;
+				box-shadow: 0 4px 12px rgba(45, 74, 43, 0.3);
+			}
+			.verify-button:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 16px rgba(45, 74, 43, 0.4);
+			}
+			.link-text {
+				margin-top: 20px;
+				padding: 15px;
+				background: rgba(45, 74, 43, 0.05);
+				border-radius: 8px;
+				word-break: break-all;
+				font-size: 0.9rem;
+			}
+			.footer {
+				margin-top: 30px;
+				padding-top: 20px;
+				border-top: 1px solid rgba(45, 74, 43, 0.1);
+				text-align: center;
+				color: #666;
+				font-size: 0.9rem;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="header">
+				<div class="logo">MVLLI</div>
+				<div class="welcome-text">Welcome {{ user.name|default(user.username) }}!</div>
+			</div>
+
+			<p>Thank you for registering with MVLLI. Please verify your email address by clicking the button below:</p>
+
+			<p style="text-align: center; margin: 30px 0;">
+				<a href="{{ verificationUrl }}" class="verify-button">
+					Verify Email Address
+				</a>
+			</p>
+
+			<p>Or copy and paste this link into your browser:</p>
+			<div class="link-text">{{ verificationUrl }}</div>
+
+			<p style="color: #666; font-size: 0.9rem;">If you did not create an account, please ignore this email.</p>
+
+			<div class="footer">
+				<p>Thanks,<br>The MVLLI Team</p>
+			</div>
+		</div>
+	</body>
+</html>

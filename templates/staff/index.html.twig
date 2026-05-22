@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Staff Dashboard - MVLLI{% endblock %}
+
+{% block body %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+    
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        background: #f5f5f5;
+        font-family: 'DM Sans', sans-serif;
+        color: #2d4a2b;
+        line-height: 1.6;
+    }
+    
+    .dashboard-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        background: #f5f5f5;
+        min-height: calc(100vh - 80px);
+    }
+    
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+    
+    .dashboard-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d4a2b;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    
+    .dashboard-header p {
+        color: #666666;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .dash-card {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(45, 74, 43, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .dash-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(139, 94, 60, 0.15);
+        border-color: rgba(139, 94, 60, 0.3);
+    }
+
+    .dash-card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #3E2723;
+    }
+
+    .dash-card-desc {
+        font-size: 0.85rem;
+        color: #6a6a6a;
+        line-height: 1.5;
+    }
+
+    /* RECENT ACTIVITY */
+    .activity-section {
+        background: #ffffff;
+        border: 1px solid rgba(139, 94, 60, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .activity-section h2 {
+        color: #3E2723;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid rgba(139, 94, 60, 0.1);
+    }
+
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .activity-table thead tr {
+        text-align: left;
+    }
+
+    .activity-table thead th {
+        padding: 0 12px 12px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #a07850;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .activity-table tbody tr {
+        border-top: 1px solid rgba(139, 94, 60, 0.07);
+        transition: background 0.15s ease;
+    }
+
+    .activity-table tbody tr:hover {
+        background: rgba(139, 94, 60, 0.03);
+    }
+
+    .activity-table tbody td {
+        padding: 13px 12px;
+        font-size: 0.875rem;
+        vertical-align: middle;
+    }
+
+    .td-user { color: #3E2723; font-weight: 600; }
+    .td-action { color: #8B5E3C; font-weight: 700; }
+    .td-target { color: #6a6a6a; }
+    .td-time { color: #9a9a9a; font-size: 0.82rem; white-space: nowrap; }
+    .td-system { color: rgba(62, 39, 35, 0.4); font-style: italic; }
+    .td-dash { color: rgba(62, 39, 35, 0.35); }
+
+    .empty-logs {
+        color: rgba(139, 94, 60, 0.6);
+        font-size: 0.9rem;
+        padding: 12px 0;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .activity-table thead { display: none; }
+        .activity-table tbody tr { display: block; padding: 12px 0; }
+        .activity-table tbody td { display: block; padding: 4px 0; }
+    }
+</style>
+
+<div class="dashboard-wrapper">
+    <div class="dashboard-header">
+        <h1>Staff Dashboard</h1>
+        <p>Manage your pet pantry operations here. Your recent system activity is shown below.</p>
+    </div>
+
+    <section class="dashboard-grid">
+        <a href="{{ path('app_product_index') }}" class="dash-card">
+            <div class="dash-card-title">Products</div>
+            <div class="dash-card-desc">Add, update, and review product listings.</div>
+        </a>
+
+        <a href="{{ path('app_order_index') }}" class="dash-card">
+            <div class="dash-card-title">Orders</div>
+            <div class="dash-card-desc">Track customer orders and updates.</div>
+        </a>
+
+        <a href="{{ path('app_customer_index') }}" class="dash-card">
+            <div class="dash-card-title">Customers</div>
+            <div class="dash-card-desc">Manage customer records and details.</div>
+        </a>
+    </section>
+
+    <section class="activity-section">
+        <h2>Recent Activity</h2>
+        {% if recentLogs is not empty %}
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Target</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recentLogs %}
+                        <tr>
+                            <td class="td-user">
+                                {% if log.user %}
+                                    {{ log.user.username }}
+                                {% else %}
+                                    <em class="td-system">System</em>
+                                {% endif %}
+                            </td>
+                            <td class="td-action">{{ log.action }}</td>
+                            <td class="td-target">
+                                {% if log.entityType and log.entityId %}
+                                    {{ log.entityType }} #{{ log.entityId }}
+                                {% else %}
+                                    <span class="td-dash">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="td-time">{{ log.timestamp|date('Y-m-d H:i:s') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-logs">No activity logs yet.</div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

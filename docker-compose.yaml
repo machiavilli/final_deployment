@@ -1,0 +1,69 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_DEV_DEPS: 1
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      PORT: 8000
+      APP_ENV: dev
+      APP_DEBUG: 1
+      APP_URL: http://127.0.0.1:${APP_PORT:-8000}
+      DEFAULT_URI: http://127.0.0.1:${APP_PORT:-8000}
+      DATABASE_URL: mysql://mvlli_user:mvlli_password@mysql:3306/mvlli_db?serverVersion=8.0&charset=utf8mb4
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    volumes:
+      - .:/app
+      - app_vendor:/app/vendor
+      - app_var:/app/var
+      - app_build:/app/public/build
+    depends_on:
+      - mysql
+    networks:
+      - mvlli_network
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: mvlli_root_password
+      MYSQL_DATABASE: mvlli_db
+      MYSQL_USER: mvlli_user
+      MYSQL_PASSWORD: mvlli_password
+    ports:
+      - "3301:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - mvlli_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: mvlli_user
+      PMA_PASSWORD: mvlli_password
+    ports:
+      - "8085:80"
+    depends_on:
+      - mysql
+    networks:
+      - mvlli_network
+
+volumes:
+  mysql_data:
+  app_vendor:
+  app_var:
+  app_build:
+
+networks:
+  mvlli_network:

@@ -1,0 +1,308 @@
+{% extends 'base_landing.html.twig' %}
+
+{% block title %}Contact Us - MVLLI{% endblock %}
+
+{% block body %}
+<style>
+    /* Import MVLLI fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+        --brand-primary: #2d4a2b;
+        --brand-secondary: #3a5a40;
+        --brand-accent: #e8f5e9;
+        --text-dark: #1a1a1a;
+        --text-light: #555555;
+        --bg-color: #ffffff;
+        --card-bg: #ffffff;
+        --shadow-sm: 0 4px 6px rgba(45, 74, 43, 0.05);
+        --shadow-md: 0 12px 30px rgba(45, 74, 43, 0.08);
+        --shadow-hover: 0 20px 40px rgba(45, 74, 43, 0.12);
+        --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .contact-container {
+        max-width: 1100px;
+        margin: 80px auto;
+        padding: 0 24px;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    /* --- ANIMATIONS --- */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulseSoftly {
+        0% { box-shadow: 0 0 0 0 rgba(45, 74, 43, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(45, 74, 43, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(45, 74, 43, 0); }
+    }
+    
+    /* --- HEADER --- */
+    .contact-header {
+        text-align: center;
+        margin-bottom: 60px;
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    .contact-header h1 {
+        color: var(--brand-primary);
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .contact-header h1::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+        margin: 20px auto 0;
+        border-radius: 4px;
+    }
+    
+    .contact-header p {
+        color: var(--text-light);
+        font-size: 1.25rem;
+        line-height: 1.7;
+        max-width: 600px;
+        margin: 0 auto;
+        font-weight: 400;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    /* --- LAYOUT --- */
+    .contact-content {
+        display: flex;
+        justify-content: center;
+        max-width: 600px;
+        margin: 0 auto 40px;
+    }
+    
+    /* --- CONTACT INFO CARD --- */
+    .contact-info {
+        background: var(--card-bg);
+        border-radius: 24px;
+        box-shadow: var(--shadow-md);
+        padding: 48px;
+        border: 1px solid rgba(45, 74, 43, 0.1);
+        transition: var(--transition-smooth);
+        animation: fadeInUp 0.8s ease-out 0.2s forwards;
+        opacity: 0; /* for animation */
+        height: fit-content;
+    }
+
+    .contact-info:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+    
+    .info-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .info-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.8rem;
+        box-shadow: 0 8px 16px rgba(45, 74, 43, 0.25);
+        animation: pulseSoftly 3s infinite;
+    }
+    
+    .info-title {
+        color: var(--brand-primary);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+    }
+    
+    .info-details {
+        color: var(--text-light);
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .info-details p {
+        margin: 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        font-size: 1.05rem;
+        transition: var(--transition-smooth);
+    }
+
+    .info-details p:hover {
+        color: var(--brand-primary);
+        transform: translateX(5px);
+    }
+    
+    .info-details i {
+        color: var(--brand-primary);
+        font-size: 1.2rem;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--brand-accent);
+        padding: 20px;
+        border-radius: 12px;
+        transition: var(--transition-smooth);
+    }
+
+    .info-details p:hover i {
+        background: var(--brand-primary);
+        color: white;
+    }
+    
+    .contact-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        color: white;
+        padding: 14px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(45, 74, 43, 0.25);
+        border: none;
+        cursor: pointer;
+    }
+    
+    .contact-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(45, 74, 43, 0.35);
+        background: linear-gradient(135deg, var(--brand-secondary) 0%, #4a6b50 100%);
+    }
+    
+    /* --- RESPONSIVE DESIGN --- */
+    @media (max-width: 900px) {
+        .contact-content {
+            flex-direction: column;
+            gap: 32px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .contact-container {
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .contact-header h1 {
+            font-size: 2.5rem;
+        }
+        
+        .contact-info {
+            padding: 32px 24px;
+        }
+
+        .info-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 16px;
+        }
+        
+        .info-details p {
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+        }
+
+        .info-details i {
+            margin: 0 auto;
+        }
+    }
+</style>
+
+<div class="contact-container">
+    <header class="contact-header">
+        <h1>Get in Touch</h1>
+        <p>We're here to help! Reach out to us for any questions, suggestions, or support. Your style journey is our priority.</p>
+    </header>
+
+    {% for message in app.flashes('success') %}
+        <div class="flash-messages">
+            <div class="flash-message flash-success">
+                {{ message }}
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="flash-messages">
+            <div class="flash-message flash-error">
+                {{ message }}
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="contact-content">
+        <div class="contact-info">
+            <div class="info-header">
+                <div class="info-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h2 class="info-title">Visit Our Store</h2>
+            </div>
+            <div class="info-details">
+                <p>
+                    <i class="fas fa-clock"></i>
+                    <span>Monday - Friday: 8:00 AM - 10:00 PM</span>
+                </p>
+                <p>
+                    <i class="fas fa-phone"></i>
+                    <span>+63 9695272409</span>
+                </p>
+                <p>
+                    <i class="fas fa-envelope"></i>
+                    <span>machiavilli@gmail.com</span>
+                </p>
+                <p>
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>South Bagacay, Dumaguete City</span>
+                </p>
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc7OxL2jiiPwA01hV_nFW3FX47paK72U5o9Nmi9eD9JgXUI0w/viewform?usp=publish-editor" target="_blank" class="contact-btn">
+                        <i class="fas fa-external-link-alt"></i>
+                        Contact Form
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

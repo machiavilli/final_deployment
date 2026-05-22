@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New Customer - MVLLI{% endblock %}
+
+{% block body %}
+<div class="mvlli-form-container">
+    <h1 class="mvlli-form-title">Add New Customer</h1>
+
+    <div class="mvlli-form-card">
+        {{ form_start(form, {'attr': {'class': 'mvlli-form'}}) }}
+            <div class="mvlli-form-group">
+                {{ form_label(form.name, null, {'label_attr': {'class': 'mvlli-label'}}) }}
+                {{ form_widget(form.name, {'attr': {'class': 'mvlli-input'}}) }}
+                {{ form_errors(form.name) }}
+            </div>
+
+            <div class="mvlli-form-group">
+                {{ form_label(form.email, null, {'label_attr': {'class': 'mvlli-label'}}) }}
+                {{ form_widget(form.email, {'attr': {'class': 'mvlli-input'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <div class="mvlli-form-group">
+                {{ form_label(form.phone, null, {'label_attr': {'class': 'mvlli-label'}}) }}
+                {{ form_widget(form.phone, {'attr': {'class': 'mvlli-input'}}) }}
+                {{ form_errors(form.phone) }}
+            </div>
+
+            <div class="mvlli-form-actions">
+                <button type="submit" class="mvlli-btn mvlli-btn-primary">
+                    <i class="fas fa-save"></i> Create Customer
+                </button>
+                <a href="{{ path('app_customer_index') }}" class="mvlli-btn mvlli-btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+
+<style>
+    .mvlli-form-container {
+        padding: 30px;
+        max-width: 700px;
+        margin: 0 auto;
+        font-family: var(--font-sans, 'Inter', sans-serif);
+    }
+    .mvlli-form-title {
+        color: #2d4a2b;
+        margin-bottom: 30px;
+        font-size: 2.2rem;
+        font-family: var(--font-serif, 'Playfair Display', serif);
+        font-weight: 600;
+    }
+    .mvlli-form-card {
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .mvlli-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .mvlli-form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .mvlli-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #1a1a1a;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .mvlli-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        font-family: var(--font-sans, 'Inter', sans-serif);
+    }
+    .mvlli-input:focus {
+        border-color: #2d4a2b;
+        box-shadow: 0 0 0 3px rgba(45, 74, 43, 0.1);
+        outline: none;
+    }
+    .mvlli-form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .mvlli-btn {
+        padding: 14px 35px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+    }
+    .mvlli-btn-primary {
+        background: linear-gradient(135deg, #2d4a2b 0%, #3a5a40 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(45, 74, 43, 0.3);
+    }
+    .mvlli-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(45, 74, 43, 0.4);
+    }
+    .mvlli-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    .mvlli-btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+

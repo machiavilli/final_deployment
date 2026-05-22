@@ -1,0 +1,732 @@
+{% extends 'base_landing.html.twig' %}
+
+{% block title %}About Us - MVLLI{% endblock %}
+
+{% block body %}
+<style>
+    :root {
+        --black:       #000000;
+        --black-light: #1a1a1a;
+        --dark-green: #2d4a2b;
+        --green-light: #3a5a40;
+        --green-medium: #4a6b50;
+        --white:       #ffffff;
+        --gray-light:   #f5f5f5;
+        --gray-medium:  #8a8a8a;
+        --radius:      18px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background: var(--black);
+        font-family: var(--font-sans);
+        color: var(--white);
+        overflow-x: hidden;
+    }
+
+    /* ── Utility ─────────────────────────────────── */
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(36px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ── Hero ──────────────────────────────────────── */
+    .hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        padding: 0;
+        background: var(--black);
+    }
+
+    .hero-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        align-items: center;
+        padding: 0 40px;
+    }
+
+    .hero-left {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--green-light);
+        background: rgba(58, 90, 64, 0.1);
+        padding: 8px 16px;
+        border: 1px solid var(--green-light);
+        border-radius: 8px;
+        width: fit-content;
+    }
+
+    .hero-title {
+        font-family: var(--font-serif);
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--white);
+        margin: 0;
+    }
+
+    .hero-title em {
+        font-style: italic;
+        color: var(--green-light);
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--gray-light);
+        margin: 0;
+        max-width: 500px;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 8px;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 14px 28px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .hero-btn.primary {
+        background: var(--dark-green);
+        color: var(--white);
+        border: 1px solid var(--dark-green);
+    }
+
+    .hero-btn.primary:hover {
+        background: var(--green-medium);
+        border-color: var(--green-medium);
+        transform: translateY(-2px);
+    }
+
+    .hero-btn.secondary {
+        background: transparent;
+        color: var(--white);
+        border: 1px solid var(--white);
+    }
+
+    .hero-btn.secondary:hover {
+        background: var(--white);
+        color: var(--black);
+        transform: translateY(-2px);
+    }
+
+    .hero-right {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .hero-visual {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        aspect-ratio: 1/1;
+    }
+
+    .hero-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent 50%);
+    }
+
+    /* ── Story ─────────────────────────────────────── */
+    .story-section {
+        background: var(--black);
+        padding: 120px 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .story-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        align-items: start;
+    }
+
+    .story-header {
+        padding: 40px;
+        background: var(--black-light);
+        border-radius: 20px;
+        border: 1px solid var(--dark-green);
+    }
+
+    .story-badge-small {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--green-light);
+        background: rgba(58, 90, 64, 0.1);
+        padding: 6px 12px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+    }
+
+    .story-title {
+        font-family: var(--font-serif);
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 700;
+        color: var(--white);
+        margin: 0 0 24px 0;
+    }
+
+    .story-title em {
+        font-style: italic;
+        color: var(--green-light);
+    }
+
+    .story-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray-light);
+        line-height: 1.6;
+        max-width: 400px;
+        margin: 0;
+    }
+
+    .story-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: start;
+    }
+
+    .story-text {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .story-block {
+        padding: 32px;
+        background: var(--black-light);
+        border: 1px solid rgba(58, 90, 64, 0.2);
+        border-radius: 16px;
+    }
+
+    .story-block h3 {
+        font-family: var(--font-serif);
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--white);
+        margin: 0 0 12px 0;
+    }
+
+    .story-block p {
+        font-size: 1rem;
+        color: var(--gray-light);
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .story-visual {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .story-image-large {
+        width: 100%;
+        height: 400px;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .story-image-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .story-overlay-large {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.05), transparent 60%);
+    }
+
+    .story-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .story-stat {
+        background: var(--black);
+        border: 1px solid var(--dark-green);
+        border-radius: 12px;
+        padding: 24px 16px;
+        text-align: center;
+    }
+
+    .stat-number-large {
+        display: block;
+        font-family: var(--font-serif);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 4px;
+    }
+
+    .stat-label-small {
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--gray-light);
+    }
+    /* ... */
+</style>
+
+<div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        
+        <div class="hero-container">
+            <div class="hero-left">
+                <div class="hero-badge">Est. 2025</div>
+                <h1 class="hero-title">
+                    Define Your <em>Style</em>
+                </h1>
+                <p class="hero-subtitle">
+                    Fashion collections, premium materials, and timeless designs — everything you need to express your unique style.
+                </p>
+                <div class="hero-actions">
+                    <a href="#story" class="hero-btn primary">
+                        Discover Our Story
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                    <a href="/products" class="hero-btn secondary">
+                        Shop Collection
+                    </a>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="hero-visual">
+                    <div class="hero-image">
+                        <img src="{{ asset('image/green-fabric.jpg') }}" alt="MVLLI - Premium Fabric">
+                        <div class="hero-overlay"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STORY -->
+    <section class="story-section" id="story">
+        <div class="story-container">
+            <div class="story-header fade-up">
+                <div class="story-badge-small">Our Story</div>
+                <h2 class="story-title">Crafted with <em>Purpose</em></h2>
+                <p class="story-subtitle">Every MVLLI piece tells a story of quality, innovation, and timeless style.</p>
+            </div>
+            
+            <div class="story-content">
+                <div class="story-text fade-up" style="transition-delay:0.1s">
+                    <div class="story-block">
+                        <h3>Premium Materials</h3>
+                        <p>We source only the finest fabrics and materials from sustainable suppliers around the world.</p>
+                    </div>
+                    <div class="story-block">
+                        <h3>Artisan Craftsmanship</h3>
+                        <p>Each piece is meticulously crafted by skilled artisans who share our vision for excellence.</p>
+                    </div>
+                </div>
+                
+                <div class="story-visual fade-up" style="transition-delay:0.2s">
+                    <div class="story-image-large">
+                        <img src="{{ asset('image/fabric2.avif') }}" alt="MVLLI Fabric">
+                        <div class="story-overlay-large"></div>
+                    </div>
+                    <div class="story-stats">
+                        <div class="story-stat">
+                            <span class="stat-number-large">1962</span>
+                            <span class="stat-label-small">Founded</span>
+                        </div>
+                        <div class="story-stat">
+                            <span class="stat-number-large">50+</span>
+                            <span class="stat-label-small">Designers</span>
+                        </div>
+                        <div class="story-stat">
+                            <span class="stat-number-large">15</span>
+                            <span class="stat-label-small">Collections</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TEAM -->
+    <section class="team-section">
+        <div class="team-header fade-up">
+            <p class="team-eyebrow">The Team</p>
+            <h2 class="team-title">Meet the visionaries behind MVLLI</h2>
+            <p class="team-subtitle">A creative team united by one thing: a passion for exceptional fashion.</p>
+        </div>
+
+        <!-- MACHIAVILLI -->
+        <div class="team-hero-card founder-card fade-up">
+            <div class="team-hero-image">
+                <img src="{{ asset('image/Mach.png') }}" alt="MACHIAVILLI - Founder">
+            </div>
+            <div class="team-hero-content">
+                <div class="team-hero-badge">Founder</div>
+                <h3 class="team-hero-name">MACHIAVILLI</h3>
+                <p class="team-hero-desc">Visionary founder establishing MVLLI's legacy of timeless elegance and style. Leading the brand with passion and innovation since 1962.</p>
+            </div>
+        </div>
+
+        <!-- DAVID LIN -->
+        <div class="team-hero-card director-card fade-up" style="transition-delay:0.15s">
+            <div class="team-hero-content">
+                <div class="team-hero-badge">Creative Director</div>
+                <h3 class="team-hero-name">David Lin</h3>
+                <p class="team-hero-desc">Brings artistic vision to every collection with innovative design concepts. Transforming creative ideas into stunning fashion realities.</p>
+            </div>
+            <div class="team-hero-image">
+                <img src="{{ asset('image/David.png') }}" alt="David Lin - Creative Director">
+            </div>
+        </div>
+
+        <!-- AMARA BRYNE -->
+        <div class="team-hero-card consultant-card fade-up" style="transition-delay:0.25s">
+            <div class="team-hero-image">
+                <img src="{{ asset('image/Amara.png') }}" alt="Amara Bryne - Style Consultant">
+            </div>
+            <div class="team-hero-content">
+                <div class="team-hero-badge">Style Consultant</div>
+                <h3 class="team-hero-name">Amara Bryne</h3>
+                <p class="team-hero-desc">Fashion expert who helps customers find their perfect style and confidence. Dedicated to making every client look and feel their best.</p>
+            </div>
+        </div>
+    </section>
+
+    <style>
+    .team-section {
+        background: var(--black-light);
+        padding: 120px 0;
+    }
+
+    .team-header {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto 80px;
+        padding: 0 24px;
+    }
+
+    .team-eyebrow {
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--green-light);
+        margin-bottom: 16px;
+    }
+
+    .team-title {
+        font-family: var(--font-serif);
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 16px;
+    }
+
+    .team-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray-light);
+        line-height: 1.6;
+    }
+
+    .team-hero-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 500px;
+        max-width: 1200px;
+        margin: 0 auto 60px;
+        background: var(--black);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border: 1px solid rgba(58, 90, 64, 0.2);
+    }
+
+    .team-hero-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .director-card {
+        direction: rtl;
+    }
+
+    .director-card .team-hero-content {
+        direction: ltr;
+    }
+
+    .director-card .team-hero-image {
+        direction: ltr;
+    }
+
+    .team-hero-image {
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+    }
+
+    .team-hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.8s ease;
+    }
+
+    .team-hero-card:hover .team-hero-image img {
+        transform: scale(1.05);
+    }
+
+    .team-hero-image::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, rgba(0,0,0,0.4), transparent);
+    }
+
+    .director-card .team-hero-image::after {
+        background: linear-gradient(to left, rgba(0,0,0,0.4), transparent);
+    }
+
+    .team-hero-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 60px;
+        position: relative;
+    }
+
+    .team-hero-badge {
+        display: inline-block;
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--green-light);
+        background: rgba(58, 90, 64, 0.15);
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 1px solid rgba(58, 90, 64, 0.3);
+        margin-bottom: 24px;
+        width: fit-content;
+    }
+
+    .team-hero-name {
+        font-family: var(--font-serif);
+        font-size: clamp(2.5rem, 4vw, 3.5rem);
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 20px;
+        line-height: 1.1;
+    }
+
+    .team-hero-desc {
+        font-size: 1.1rem;
+        color: var(--gray-light);
+        line-height: 1.8;
+        max-width: 400px;
+    }
+
+    @media (max-width: 900px) {
+        .team-hero-card {
+            grid-template-columns: 1fr;
+            margin: 0 24px 40px;
+        }
+
+        .team-hero-image {
+            min-height: 350px;
+        }
+
+        .team-hero-image::after {
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+        }
+
+        .director-card .team-hero-image::after {
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+        }
+
+        .director-card {
+            direction: ltr;
+        }
+
+        .director-card .team-hero-content {
+            order: 2;
+        }
+
+        .team-hero-content {
+            padding: 40px;
+        }
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, var(--dark-green) 0%, var(--green-light) 100%);
+        padding: 120px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        left: -80px;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .cta-section h2 {
+        font-family: var(--font-serif);
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-section p {
+        color: rgba(255,255,255,0.8);
+        font-size: 1.1rem;
+        max-width: 500px;
+        margin: 0 auto 40px;
+        line-height: 1.7;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--white);
+        color: var(--dark-green);
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 18px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .cta-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+    </style>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2 class="fade-up">Ready to elevate your style?</h2>
+        <p class="fade-up" style="transition-delay:0.1s">Discover our curated collections and join thousands of fashion enthusiasts who call MVLLI their first choice.</p>
+        <a href="/products" class="cta-btn fade-up" style="transition-delay:0.2s">
+            Shop MVLLI
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+    </section>
+
+</div>
+
+<script>
+(function () {
+    const els = document.querySelectorAll('.fade-up');
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                io.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+})();
+</script>
+
+{% endblock %}

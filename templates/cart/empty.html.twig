@@ -1,0 +1,59 @@
+{% extends 'base_landing.html.twig' %}
+
+{% block title %}Shopping Cart - MVLLI Fashion{% endblock %}
+
+{% block body %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+    .empty-cart-container {
+        max-width: 800px;
+        margin: 100px auto;
+        padding: 0 20px;
+        text-align: center;
+    }
+
+    .empty-cart-icon {
+        font-size: 5rem;
+        color: #ccc;
+        margin-bottom: 30px;
+    }
+
+    .empty-cart-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #2d4a2b;
+        margin-bottom: 15px;
+    }
+
+    .empty-cart-message {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .continue-shopping-btn {
+        display: inline-block;
+        background: #2d4a2b;
+        color: #fff;
+        padding: 15px 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .continue-shopping-btn:hover {
+        background: #1a2e19;
+    }
+</style>
+
+<div class="empty-cart-container">
+    <div class="empty-cart-icon">
+        <i class="fas fa-shopping-cart"></i>
+    </div>
+    <h1 class="empty-cart-title">Your Cart is Empty</h1>
+    <p class="empty-cart-message">Looks like you haven't added any items to your cart yet.</p>
+    <a href="{{ path('app_home') }}" class="continue-shopping-btn">Continue Shopping</a>
+</div>
+{% endblock %}

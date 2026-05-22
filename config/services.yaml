@@ -1,0 +1,50 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.url: '%env(default:default_app_url:APP_URL)%'
+    default_app_url: ''
+    images_directory: '%kernel.project_dir%/public/uploads/images'
+    # Comma-separated Gmail addresses allowed to sign in via Google as staff
+    google_staff_allowed_emails: '%env(csv:default:google_staff_allowed_emails_default:GOOGLE_STAFF_ALLOWED_EMAILS)%'
+    google_staff_allowed_emails_default: ''
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+
+    App\Service\ProductImageResolver:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\UserRoleResolver:
+        arguments:
+            $googleStaffAllowedEmails: '%google_staff_allowed_emails%'
+
+    App\Service\AppUrlService:
+        arguments:
+            $appUrl: '%app.url%'
+
+    App\Service\EmailVerificationService:
+        arguments:
+            $mailerFromEmail: '%env(MAILER_FROM_EMAIL)%'
+            $mailerFromName: '%env(MAILER_FROM_NAME)%'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    # Custom Guzzle HTTP client with SSL certificate for OAuth2
+    oauth2_http_client:
+        class: GuzzleHttp\Client
+        arguments:
+            -
+                verify: '%kernel.project_dir%/cacert.pem'

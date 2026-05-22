@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}MVLLI{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+        <style>
+            :root {
+                --primary: #2d4a2b;
+                --primary-2: #3a5a40;
+                --primary-3: #4a6b50;
+                --nav-bg: #2d4a2b;
+                --text: #ffffff;
+                --muted: rgba(255, 255, 255, 0.7);
+                --surface: rgba(255, 255, 255, 0.95);
+                --surface-2: #fafafa;
+                --shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
+                --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                --font-serif: 'Playfair Display', 'Georgia', serif;
+            }
+
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+
+            html { scroll-behavior: smooth; }
+
+            body {
+                font-family: var(--font-sans);
+                background-color: var(--surface-2);
+                color: var(--text);
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            /* NEW HEADER DESIGN */
+            .header {
+                width: 100%;
+                background: var(--nav-bg);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+                box-shadow: var(--shadow);
+            }
+
+            .header-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 32px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                height: 80px;
+            }
+
+            /* LOGO SECTION */
+            .logo-section {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: var(--text);
+                letter-spacing: -0.5px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+            }
+
+            .logo:hover {
+                transform: translateY(-2px);
+                color: rgba(255, 255, 255, 0.8);
+            }
+
+            .logo-icon {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                object-fit: cover;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .logo:hover .logo-icon {
+                transform: rotate(5deg) scale(1.05);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            /* NAVIGATION SECTION */
+            .nav-section {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .nav-link {
+                color: var(--text);
+                font-size: 0.9rem;
+                font-weight: 500;
+                padding: 12px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                position: relative;
+                border: 1px solid transparent;
+            }
+
+            .nav-link::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%) scaleX(0);
+                width: 80%;
+                height: 2px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 2px;
+                transition: transform 0.3s ease;
+            }
+
+            .nav-link:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .nav-link:hover::before {
+                transform: translateX(-50%) scaleX(1);
+            }
+
+            /* AUTH SECTION */
+            .auth-section {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .auth-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                padding: 12px 24px;
+                border-radius: 12px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border: 2px solid var(--primary);
+            }
+
+            .auth-btn i {
+                font-size: 0.9rem;
+            }
+
+            .auth-btn--outline {
+                background: transparent;
+                color: var(--text);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+
+            .auth-btn--outline:hover {
+                background: rgba(255, 255, 255, 0.2);
+                color: var(--primary);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow);
+            }
+
+            .auth-btn--solid {
+                background: var(--primary);
+                color: var(--text);
+            }
+
+            .auth-btn--solid:hover {
+                background: var(--primary-2);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow);
+            }
+
+            /* PAGE CONTENT */
+            main { 
+                min-height: calc(100vh - 160px);
+                background: var(--surface-2);
+            }
+
+            /* NEW FOOTER DESIGN */
+            footer {
+                background: #2d2d2d;
+                color: white;
+                padding: 60px 0;
+                margin-top: 80px;
+            }
+
+            .footer-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 32px;
+                display: grid;
+                grid-template-columns: 2fr 1fr 1fr 1fr;
+                gap: 40px;
+            }
+
+            .footer-brand {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .footer-logo {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: white;
+                text-decoration: none;
+                margin-bottom: 8px;
+            }
+
+            .footer-description {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+
+            .footer-column h4 {
+                color: white;
+                font-size: 1rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+            }
+
+            .footer-links {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .footer-links a {
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: color 0.3s ease;
+            }
+
+            .footer-links a:hover {
+                color: white;
+            }
+
+            .footer-bottom {
+                grid-column: 1 / -1;
+                text-align: center;
+                padding-top: 32px;
+                margin-top: 24px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 0.85rem;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .header-container {
+                    flex-direction: column;
+                    height: auto;
+                    padding: 16px 20px;
+                    gap: 16px;
+                }
+
+                .nav-section {
+                    order: 3;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                }
+
+                .auth-section {
+                    order: 2;
+                }
+
+                .footer-container {
+                    grid-template-columns: 1fr;
+                    gap: 32px;
+                }
+
+                .footer-bottom {
+                    padding-top: 24px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <nav class="header">
+            <div class="header-container">
+                <div class="logo-section">
+                    <a class="logo" href="{{ path('app_home') }}">
+                        <img src="{{ asset('image/logoMVLLI.png') }}" alt="MVLLI Logo" class="logo-icon">
+                        MVLLI
+                    </a>
+                </div>
+
+                {% if app.user %}
+                    <div class="nav-section">
+                        <a href="{{ path('app_home') }}" class="nav-link">Home</a>
+                        <a href="{{ path('app_about_us') }}" class="nav-link">About Us</a>
+                        <a href="{{ path('app_our_history') }}" class="nav-link">Our History</a>
+                        <a href="{{ path('app_products') }}" class="nav-link">Shop</a>
+                        <a href="{{ path('app_contact_us') }}" class="nav-link">Contact Us</a>
+                        <a href="{{ path('cart_view') }}" class="nav-link" style="position: relative;">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                            {% if app.user.cart and app.user.cart.totalQuantity > 0 %}
+                                <span style="position: absolute; top: -6px; right: -12px; background: #2d4a2b; color: white; border-radius: 50%; min-width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; padding: 0 4px;">{{ app.user.cart.totalQuantity }}</span>
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="auth-section">
+                        <a href="{{ path('app_profile_show') }}" class="auth-btn auth-btn--outline">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="auth-btn auth-btn--outline">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="nav-section">
+                        <a href="{{ path('app_home') }}" class="nav-link">Home</a>
+                        <a href="{{ path('app_about_us') }}" class="nav-link">About Us</a>
+                        <a href="{{ path('app_our_history') }}" class="nav-link">Background </a>
+                        <a href="{{ path('app_products') }}" class="nav-link">Shop </a>
+                        <a href="{{ path('app_contact_us') }}" class="nav-link">Contact Us</a>
+                    </div>
+                    <div class="auth-section">
+                        <a href="{{ path('app_login') }}" class="auth-btn auth-btn--outline">
+                            <i class="fas fa-user-circle"></i> Sign Up
+                        </a>
+                        <a href="{{ path('app_register') }}" class="auth-btn auth-btn--solid">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </nav>
+
+        <main>
+            {% block body %}{% endblock %}
+        </main>
+
+        <footer>
+            <div class="footer-container">
+                <div class="footer-brand">
+                    <a href="#" class="footer-logo">
+                        <img src="{{ asset('image/logoMVLLI.png') }}" alt="MVLLI Logo" style="width: 32px; height: 32px; border-radius: 8px; margin-right: 8px;">
+                        MVLLI
+                    </a>
+                    <p class="footer-description">
+                        Premium fashion and lifestyle brand. Discover your style with our curated collections.
+                    </p>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Shop</h4>
+                    <div class="footer-links">
+                        <a href="{{ path('app_products') }}">New Arrivals</a>
+                        <a href="{{ path('app_products') }}">Best Sellers</a>
+                        <a href="{{ path('app_products') }}">Sale Items</a>
+                        <a href="{{ path('app_products') }}">Collections</a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <div class="footer-links">
+                        <a href="{{ path('app_about_us') }}">About Us</a>
+                        <a href="{{ path('app_our_history') }}">Our History</a>
+                        <a href="{{ path('app_contact_us') }}">Contact</a>
+                        <a href="#">Careers</a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <div class="footer-links">
+                        <a href="#">Help Center</a>
+                        <a href="#">Shipping Info</a>
+                        <a href="#">Returns</a>
+                        <a href="#">Size Guide</a>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    &copy; 2025 MVLLI Machiavilli | All rights reserved
+                </div>
+            </div>
+        </footer>
+    </body>
+</html>

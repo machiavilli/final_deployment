@@ -1,0 +1,176 @@
+{% extends 'base_landing.html.twig' %}
+
+{% block title %}Register - MVLLI{% endblock %}
+
+{% block body %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+    
+    .register-wrapper {
+        max-width: 500px;
+        margin: 60px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(45, 74, 43, 0.15);
+        border: 1px solid #e0e0e0;
+    }
+    
+    .register-wrapper h1 {
+        text-align: center;
+        color: #2d4a2b;
+        margin-bottom: 30px;
+        font-size: 2rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+    }
+    
+    .register-wrapper .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2d4a2b;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    .register-wrapper .form-input {
+        width: 100%;
+        padding: 14px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-family: 'DM Sans', sans-serif;
+        transition: all 0.3s ease;
+        background: #fafafa;
+    }
+    
+    .register-wrapper .form-input:focus {
+        outline: none;
+        border-color: #2d4a2b;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(45, 74, 43, 0.1);
+    }
+    
+    .register-wrapper .btn-register {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #2d4a2b 0%, #3a5a40 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+    
+    .register-wrapper .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(45, 74, 43, 0.4);
+        background: linear-gradient(135deg, #3a5a40 0%, #4a6b50 100%);
+    }
+    
+    .register-wrapper .form-link {
+        color: #2d4a2b;
+        text-decoration: none;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        transition: all 0.3s ease;
+    }
+    
+    .register-wrapper .form-link:hover {
+        color: #3a5a40;
+        text-decoration: underline;
+    }
+    
+    .register-wrapper .terms-label {
+        color: #555;
+        font-size: 0.9rem;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+    }
+</style>
+
+<div class="register-wrapper">
+    <h1>Create Account</h1>
+    
+    {% for message in app.flashes('success') %}
+        <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #28a745;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc3545;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {{ form_start(registrationForm, {'attr': {'style': 'display: flex; flex-direction: column; gap: 20px;'}}) }}
+        {{ form_row(registrationForm.name, {
+            'attr': {
+                'class': 'form-input',
+                'placeholder': 'Enter your full name'
+            },
+            'label_attr': {'class': 'form-label'}
+        }) }}
+
+        {{ form_row(registrationForm.email, {
+            'attr': {
+                'class': 'form-input',
+                'placeholder': 'Enter your email address'
+            },
+            'label_attr': {'class': 'form-label'}
+        }) }}
+
+        {{ form_row(registrationForm.username, {
+            'attr': {
+                'class': 'form-input',
+                'placeholder': 'Choose a username'
+            },
+            'label_attr': {'class': 'form-label'}
+        }) }}
+
+        {{ form_row(registrationForm.plainPassword.first, {
+            'attr': {
+                'class': 'form-input',
+                'placeholder': 'Create a password'
+            },
+            'label_attr': {'class': 'form-label'}
+        }) }}
+
+        {{ form_row(registrationForm.plainPassword.second, {
+            'attr': {
+                'class': 'form-input',
+                'placeholder': 'Confirm your password'
+            },
+            'label_attr': {'class': 'form-label'}
+        }) }}
+
+        <div style="display: flex; align-items: start; gap: 10px; margin: 20px 0;">
+            {{ form_widget(registrationForm.agreeTerms, {
+                'attr': {
+                    'style': 'margin-top: 5px; width: 18px; height: 18px; cursor: pointer; accent-color: #2d4a2b;'
+                }
+            }) }}
+            {{ form_label(registrationForm.agreeTerms, null, {
+                'label_attr': {'class': 'terms-label'}
+            }) }}
+        </div>
+        {{ form_errors(registrationForm.agreeTerms) }}
+
+        <button type="submit" class="btn-register">
+            Create Account
+        </button>
+    {{ form_end(registrationForm) }}
+
+    <div style="text-align: center; margin-top: 25px; color: #666; font-family: 'DM Sans', sans-serif;">
+        <p style="margin: 0 0 10px 0;">Already have an account?</p>
+        <a href="{{ path('app_login') }}" class="form-link">Sign In →</a>
+    </div>
+
+</div>
+{% endblock %}
+

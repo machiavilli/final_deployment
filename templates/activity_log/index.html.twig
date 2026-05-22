@@ -1,0 +1,367 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activity Logs - MVLLI{% endblock %}
+
+{% block body %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+    
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        background: #f5f5f5;
+        font-family: 'DM Sans', sans-serif;
+        color: #2d4a2b;
+        line-height: 1.6;
+    }
+    
+    .activity-container {
+        padding: 40px 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+        background: #f5f5f5;
+        min-height: calc(100vh - 80px);
+    }
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #2d4a2b;
+        margin: 0;
+    }
+    
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(45, 74, 43, 0.1);
+        margin-bottom: 30px;
+    }
+    
+    .filter-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2d4a2b;
+        margin-bottom: 20px;
+    }
+    
+    .filter-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2d4a2b;
+        font-weight: 500;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        background: white;
+        color: #333333;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #2d4a2b;
+        box-shadow: 0 0 0 3px rgba(45, 74, 43, 0.1);
+    }
+    
+    .filter-btn {
+        padding: 14px 28px;
+        background: linear-gradient(135deg, #2d4a2b 0%, #3a5a40 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(45, 74, 43, 0.3);
+    }
+    
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(45, 74, 43, 0.4);
+        background: linear-gradient(135deg, #3a5a40 0%, #4a6b50 100%);
+    }
+    
+    .logs-table {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(45, 74, 43, 0.1);
+        overflow: hidden;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    .data-table th {
+        padding: 16px;
+        text-align: left;
+        color: #2d4a2b;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        background: #f8f9fa;
+        border-bottom: 2px solid #e0e0e0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.85rem;
+    }
+    
+    .data-table td {
+        padding: 16px;
+        border-bottom: 1px solid #e0e0e0;
+        font-family: 'DM Sans', sans-serif;
+        color: #333333;
+    }
+    
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .data-table tr:hover {
+        background: #f5f5f5;
+    }
+    
+    .action-badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    .action-badge.create {
+        background: #3a5a40;
+        color: white;
+    }
+    
+    .action-badge.update {
+        background: #4a6b50;
+        color: white;
+    }
+    
+    .action-badge.delete {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .action-badge.login {
+        background: #2d4a2b;
+        color: white;
+    }
+    
+    .action-badge.logout {
+        background: #6b8c6a;
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666666;
+        font-family: 'DM Sans', sans-serif;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 16px;
+        opacity: 0.3;
+        color: #2d4a2b;
+    }
+    
+    @media (max-width: 768px) {
+        .activity-container {
+            padding: 20px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="activity-container">
+    <div class="page-header">
+        <h1 class="page-title">📋 Activity Logs</h1>
+    </div>
+
+    <div class="filter-section">
+        <h2 class="filter-title">🔍 Filter Logs</h2>
+        <form method="get" class="filter-form">
+            <div class="form-group">
+                <label for="user">User:</label>
+                <select name="user" id="user" class="form-control">
+                    <option value="">All Users</option>
+                    {% for u in users %}
+                        <option value="{{ u.id }}" {% if selected_user and selected_user.id == u.id %}selected{% endif %}>
+                            {{ u.username }} ({{ u.email }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="action">Action:</label>
+                <select name="action" id="action" class="form-control">
+                    <option value="">All Actions</option>
+                    <option value="CREATE" {% if selected_action == 'CREATE' %}selected{% endif %}>Create</option>
+                    <option value="UPDATE" {% if selected_action == 'UPDATE' %}selected{% endif %}>Update</option>
+                    <option value="DELETE" {% if selected_action == 'DELETE' %}selected{% endif %}>Delete</option>
+                    <option value="LOGIN" {% if selected_action == 'LOGIN' %}selected{% endif %}>Login</option>
+                    <option value="LOGOUT" {% if selected_action == 'LOGOUT' %}selected{% endif %}>Logout</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" name="start_date" id="start_date" value="{{ start_date ? start_date|date('Y-m-d') : '' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="end_date">End Date:</label>
+                <input type="date" name="end_date" id="end_date" value="{{ end_date ? end_date|date('Y-m-d') : '' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="filter-btn">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="logs-table">
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Log ID</th>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Target Data</th>
+                        <th>Date & Time</th>
+                        <th>Actions</th>
+                        <th style="padding: 12px; text-align: left; color: #666; font-weight: 600;">Username</th>
+                        <th style="padding: 12px; text-align: left; color: #666; font-weight: 600;">Role</th>
+                        <th style="padding: 12px; text-align: left; color: #666; font-weight: 600;">Action</th>
+                        <th style="padding: 12px; text-align: left; color: #666; font-weight: 600;">Target Data</th>
+                        <th style="padding: 12px; text-align: left; color: #666; font-weight: 600;">Date & Time</th>
+                        <th style="padding: 12px; text-align: left; color: #666; font-weight: 600;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in logs %}
+                        {% set log = item.log %}
+                        {% set targetData = item.targetData %}
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 12px;">{{ log.id }}</td>
+                            <td style="padding: 12px;">
+                                {% if log.user %}
+                                    {{ log.user.id }}
+                                {% else %}
+                                    <em style="color: #999;">-</em>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px;">
+                                {% if log.user %}
+                                    {{ log.user.username }}<br>
+                                    <small style="color: #999;">{{ log.user.email }}</small>
+                                {% else %}
+                                    <em style="color: #999;">System</em>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px;">
+                                {% if log.user %}
+                                    <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;
+                                        {% if 'ROLE_ADMIN' in log.user.roles %}background: #f8d7da; color: #721c24;
+                                        {% else %}background: #d1ecf1; color: #0c5460;{% endif %}">
+                                        {% if 'ROLE_ADMIN' in log.user.roles %}ROLE_ADMIN{% else %}ROLE_STAFF{% endif %}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;
+                                    {% if log.action == 'CREATE' %}background: #d4edda; color: #155724;
+                                    {% elseif log.action == 'UPDATE' %}background: #fff3cd; color: #856404;
+                                    {% elseif log.action == 'DELETE' %}background: #f8d7da; color: #721c24;
+                                    {% elseif log.action == 'LOGIN' %}background: #d1ecf1; color: #0c5460;
+                                    {% elseif log.action == 'LOGOUT' %}background: #e2e3e5; color: #383d41;
+                                    {% else %}background: #f0f0f0; color: #333;{% endif %}">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="font-size: 0.9rem; color: #333;">{{ targetData }}</span>
+                            </td>
+                            <td style="padding: 12px; color: #666;">
+                                {{ log.timestamp|date('Y-m-d H:i:s') }}
+                            </td>
+                            <td style="padding: 12px;">
+                                <a href="{{ path('app_activity_log_show', {'id': log.id}) }}" style="color: #8B5E3C; text-decoration: none;" title="View Details (Read-Only)">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" style="padding: 40px; text-align: center; color: #999;">No logs found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <strong>Note:</strong> Activity logs are read-only. They cannot be modified or deleted.
+        </div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
