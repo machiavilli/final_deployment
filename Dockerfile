@@ -29,6 +29,9 @@ FROM php:8.3-fpm-bookworm
 
 ARG INSTALL_DEV_DEPS=0
 
+# Required before composer RUN so symfony/runtime plugin can generate vendor/autoload_runtime.php
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
@@ -55,13 +58,14 @@ COPY . .
 
 COPY --from=assets /app/public/build ./public/build
 
-# --no-scripts: symfony-cmd (from symfony/flex) is not available in prod (--no-dev) image builds
+# --no-scripts: symfony-cmd is not available in prod (--no-dev) builds; runtime plugin still runs
 RUN if [ "$INSTALL_DEV_DEPS" = "1" ]; then \
       composer install --no-interaction --prefer-dist --no-scripts; \
     else \
       composer install --no-interaction --prefer-dist --no-dev --no-scripts; \
     fi \
     && composer dump-autoload --optimize --classmap-authoritative \
+    && if [ ! -f vendor/autoload_runtime.php ]; then cp docker/autoload_runtime.php vendor/autoload_runtime.php; fi \
     && test -f vendor/autoload_runtime.php
 
 RUN mkdir -p var/cache var/log public/uploads/images public/uploads/products \
@@ -78,6 +82,5 @@ EXPOSE 8080
 
 ENV PORT=8080
 ENV APP_ENV=prod
-ENV COMPOSER_ALLOW_SUPERUSER=1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
