@@ -35,51 +35,69 @@ final class Version20260407163750 extends AbstractMigration
 
         $this->createTableIfNotExists('messenger_messages', 'CREATE TABLE messenger_messages (id BIGINT AUTO_INCREMENT NOT NULL, body LONGTEXT NOT NULL, headers LONGTEXT NOT NULL, queue_name VARCHAR(190) NOT NULL, created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', available_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\', delivered_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\', INDEX IDX_75EA56E0FB7336F0 (queue_name), INDEX IDX_75EA56E0E3BD61CE (available_at), INDEX IDX_75EA56E016BA31DB (delivered_at), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
 
-        // Align legacy `order` table (from Version20251014022329) with expected columns
+        // Align legacy tables (created by earlier migrations) with expected columns
         $this->addColumnIfNotExists('order', 'customer_id', 'customer_id INT DEFAULT NULL');
         $this->addColumnIfNotExists('order', 'created_by_id', 'created_by_id INT DEFAULT NULL');
+        $this->addColumnIfNotExists('category', 'created_by_id', 'created_by_id INT DEFAULT NULL');
+        $this->addColumnIfNotExists('customer', 'created_by_id', 'created_by_id INT DEFAULT NULL');
+        $this->addColumnIfNotExists('product', 'created_by_id', 'created_by_id INT DEFAULT NULL');
+        $this->addColumnIfNotExists('product', 'category_id', 'category_id INT DEFAULT NULL');
+
+        $this->createIndexIfNotExists('category', 'IDX_64C19C1B03A8386', 'CREATE INDEX IDX_64C19C1B03A8386 ON category (created_by_id)');
+        $this->createIndexIfNotExists('customer', 'IDX_81398E09B03A8386', 'CREATE INDEX IDX_81398E09B03A8386 ON customer (created_by_id)');
+        $this->createIndexIfNotExists('order', 'IDX_F52993989395C3F3', 'CREATE INDEX IDX_F52993989395C3F3 ON `order` (customer_id)');
+        $this->createIndexIfNotExists('order', 'IDX_F5299398B03A8386', 'CREATE INDEX IDX_F5299398B03A8386 ON `order` (created_by_id)');
+        $this->createIndexIfNotExists('product', 'IDX_D34A04AD12469DE2', 'CREATE INDEX IDX_D34A04AD12469DE2 ON product (category_id)');
+        $this->createIndexIfNotExists('product', 'IDX_D34A04ADB03A8386', 'CREATE INDEX IDX_D34A04ADB03A8386 ON product (created_by_id)');
 
         $this->addForeignKeyIfReferencedTableExists(
             'activity_log',
             'FK_FD06F647A76ED395',
             'user',
             'ALTER TABLE activity_log ADD CONSTRAINT FK_FD06F647A76ED395 FOREIGN KEY (user_id) REFERENCES `user` (id)',
+            'user_id',
         );
         $this->addForeignKeyIfReferencedTableExists(
             'category',
             'FK_64C19C1B03A8386',
             'user',
             'ALTER TABLE category ADD CONSTRAINT FK_64C19C1B03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id)',
+            'created_by_id',
         );
         $this->addForeignKeyIfReferencedTableExists(
             'customer',
             'FK_81398E09B03A8386',
             'user',
             'ALTER TABLE customer ADD CONSTRAINT FK_81398E09B03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id)',
+            'created_by_id',
         );
         $this->addForeignKeyIfReferencedTableExists(
             'order',
             'FK_F52993989395C3F3',
             'customer',
             'ALTER TABLE `order` ADD CONSTRAINT FK_F52993989395C3F3 FOREIGN KEY (customer_id) REFERENCES customer (id)',
+            'customer_id',
         );
         $this->addForeignKeyIfReferencedTableExists(
             'order',
             'FK_F5299398B03A8386',
             'user',
             'ALTER TABLE `order` ADD CONSTRAINT FK_F5299398B03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id)',
+            'created_by_id',
         );
         $this->addForeignKeyIfReferencedTableExists(
             'product',
             'FK_D34A04AD12469DE2',
             'category',
             'ALTER TABLE product ADD CONSTRAINT FK_D34A04AD12469DE2 FOREIGN KEY (category_id) REFERENCES category (id)',
+            'category_id',
         );
         $this->addForeignKeyIfReferencedTableExists(
             'product',
             'FK_D34A04ADB03A8386',
             'user',
             'ALTER TABLE product ADD CONSTRAINT FK_D34A04ADB03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id)',
+            'created_by_id',
         );
     }
 

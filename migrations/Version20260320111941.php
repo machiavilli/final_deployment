@@ -32,6 +32,7 @@ final class Version20260320111941 extends AbstractMigration
             'FK_81398E09B03A8386',
             'user',
             'ALTER TABLE customer ADD CONSTRAINT FK_81398E09B03A8386 FOREIGN KEY (created_by_id) REFERENCES `user` (id)',
+            'created_by_id',
         );
 
         $this->createIndexIfNotExists(

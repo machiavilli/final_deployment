@@ -29,6 +29,7 @@ final class Version20251014065723 extends AbstractMigration
             'FK_D34A04AD12469DE2',
             'category',
             'ALTER TABLE product ADD CONSTRAINT FK_D34A04AD12469DE2 FOREIGN KEY (category_id) REFERENCES category (id)',
+            'category_id',
         );
 
         $this->createIndexIfNotExists(

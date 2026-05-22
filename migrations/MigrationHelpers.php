@@ -101,6 +101,7 @@ trait MigrationHelpers
         string $constraintName,
         string $referencedTable,
         string $addConstraintSql,
+        ?string $localColumn = null,
     ): void {
         $tableEscaped = str_replace("'", "''", $table);
         $constraintEscaped = str_replace("'", "''", $constraintName);
@@ -116,10 +117,25 @@ trait MigrationHelpers
             $tableEscaped,
             $constraintEscaped
         ));
-        $this->addSql(sprintf(
-            "SET @add_fk_sql := IF(@ref_table_exists > 0 AND @add_fk_exists = 0, '%s', 'SELECT 1')",
-            $addConstraintSqlEscaped
-        ));
+
+        if ($localColumn !== null) {
+            $columnEscaped = str_replace("'", "''", $localColumn);
+            $this->addSql(sprintf(
+                "SET @add_fk_col_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
+                $tableEscaped,
+                $columnEscaped
+            ));
+            $this->addSql(sprintf(
+                "SET @add_fk_sql := IF(@ref_table_exists > 0 AND @add_fk_exists = 0 AND @add_fk_col_exists > 0, '%s', 'SELECT 1')",
+                $addConstraintSqlEscaped
+            ));
+        } else {
+            $this->addSql(sprintf(
+                "SET @add_fk_sql := IF(@ref_table_exists > 0 AND @add_fk_exists = 0, '%s', 'SELECT 1')",
+                $addConstraintSqlEscaped
+            ));
+        }
+
         $this->addSql('PREPARE stmt_add_fk FROM @add_fk_sql');
         $this->addSql('EXECUTE stmt_add_fk');
         $this->addSql('DEALLOCATE PREPARE stmt_add_fk');
