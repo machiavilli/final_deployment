@@ -81,8 +81,8 @@ run_bootstrap() {
     php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || true
 
     if [ -n "${INITIAL_ADMIN_EMAIL:-}" ] && [ -n "${INITIAL_ADMIN_PASSWORD:-}" ]; then
-        echo "[bootstrap] Ensuring initial admin user (only when user table is empty)..."
-        php bin/console app:ensure-initial-admin \
+        echo "[bootstrap] Creating or updating admin user from INITIAL_ADMIN_* ..."
+        php bin/console app:upsert-admin \
             --email="${INITIAL_ADMIN_EMAIL}" \
             --password="${INITIAL_ADMIN_PASSWORD}" \
             --username="${INITIAL_ADMIN_USERNAME:-admin}" \

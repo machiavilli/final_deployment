@@ -32,7 +32,8 @@ class CreateAdminCommand extends Command
             ->addOption('email', null, InputOption::VALUE_OPTIONAL, 'Admin email')
             ->addOption('username', null, InputOption::VALUE_OPTIONAL, 'Admin username')
             ->addOption('name', null, InputOption::VALUE_OPTIONAL, 'Admin full name')
-            ->addOption('password', null, InputOption::VALUE_OPTIONAL, 'Admin password');
+            ->addOption('password', null, InputOption::VALUE_OPTIONAL, 'Admin password')
+            ->addOption('update', null, InputOption::VALUE_NONE, 'Update password and roles if email already exists');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -76,10 +77,21 @@ class CreateAdminCommand extends Command
             return Command::FAILURE;
         }
 
-        // Check if user already exists
         $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($existingUser) {
-            $io->error('A user with this email already exists!');
+        if ($existingUser instanceof User) {
+            if ($input->getOption('update')) {
+                $existingUser->setRoles(['ROLE_ADMIN']);
+                $existingUser->setIsActive(true);
+                $existingUser->setIsVerified(true);
+                $existingUser->setPassword($this->passwordHasher->hashPassword($existingUser, $password));
+                $this->entityManager->flush();
+                $io->success('Admin user updated successfully!');
+
+                return Command::SUCCESS;
+            }
+
+            $io->error('A user with this email already exists! Use --update to reset password and roles.');
+
             return Command::FAILURE;
         }
 
