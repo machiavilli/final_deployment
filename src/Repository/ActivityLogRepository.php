@@ -20,6 +20,8 @@ class ActivityLogRepository extends ServiceEntityRepository
     public function findRecent(int $limit = 10): array
     {
         return $this->createQueryBuilder('a')
+            ->leftJoin('a.user', 'u')
+            ->addSelect('u')
             ->orderBy('a.timestamp', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()

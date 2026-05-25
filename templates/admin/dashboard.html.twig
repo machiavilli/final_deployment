@@ -384,10 +384,9 @@
                     <i class="fas fa-box"></i>
                 </div>
             </div>
-            <div class="stat-value">{{ total_products|default('0') }}</div>
-            <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                <span>12% from last month</span>
+            <div class="stat-value">{{ total_products|default(0) }}</div>
+            <div class="stat-change">
+                <span>Active in catalog</span>
             </div>
         </div>
 
@@ -398,11 +397,15 @@
                     <i class="fas fa-shopping-cart"></i>
                 </div>
             </div>
-            <div class="stat-value">{{ total_orders|default('0') }}</div>
-            <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                <span>8% from last month</span>
+            <div class="stat-value">{{ total_orders|default(0) }}</div>
+            {% if orders_change_pct is not null %}
+            <div class="stat-change {% if orders_change_pct >= 0 %}positive{% endif %}">
+                <i class="fas fa-arrow-{% if orders_change_pct >= 0 %}up{% else %}down{% endif %}"></i>
+                <span>{{ orders_change_pct|abs }}% vs prior 30 days</span>
             </div>
+            {% else %}
+            <div class="stat-change"><span>Last 30 days</span></div>
+            {% endif %}
         </div>
 
         <div class="stat-card">
@@ -412,11 +415,15 @@
                     <i class="fas fa-user-friends"></i>
                 </div>
             </div>
-            <div class="stat-value">{{ total_customers|default('0') }}</div>
-            <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                <span>5% from last month</span>
+            <div class="stat-value">{{ total_customers|default(0) }}</div>
+            {% if customers_change_pct is not null %}
+            <div class="stat-change {% if customers_change_pct >= 0 %}positive{% endif %}">
+                <i class="fas fa-arrow-{% if customers_change_pct >= 0 %}up{% else %}down{% endif %}"></i>
+                <span>{{ customers_change_pct|abs }}% new signups vs prior 30 days</span>
             </div>
+            {% else %}
+            <div class="stat-change"><span>Registered accounts</span></div>
+            {% endif %}
         </div>
 
         <div class="stat-card">
@@ -426,11 +433,15 @@
                     <i class="fas fa-dollar-sign"></i>
                 </div>
             </div>
-            <div class="stat-value">₱{{ total_revenue|default('0')|number_format(2) }}</div>
-            <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                <span>15% from last month</span>
+            <div class="stat-value">₱{{ total_revenue|default(0)|number_format(2) }}</div>
+            {% if revenue_change_pct is not null %}
+            <div class="stat-change {% if revenue_change_pct >= 0 %}positive{% endif %}">
+                <i class="fas fa-arrow-{% if revenue_change_pct >= 0 %}up{% else %}down{% endif %}"></i>
+                <span>{{ revenue_change_pct|abs }}% vs prior 30 days</span>
             </div>
+            {% else %}
+            <div class="stat-change"><span>All-time order value</span></div>
+            {% endif %}
         </div>
     </div>
 
@@ -442,8 +453,8 @@
             <!-- Sales Chart -->
             <div class="chart-card">
                 <div class="chart-header">
-                    <h3 class="chart-title">Fashion Sales Overview</h3>
-                    <span class="chart-period">Last 7 Days</span>
+                    <h3 class="chart-title">Order Value</h3>
+                    <span class="chart-period">Last 7 days (from orders)</span>
                 </div>
                 <div class="chart-container">
                     <canvas id="salesChart"></canvas>
@@ -465,8 +476,8 @@
         <!-- Revenue Chart -->
         <div class="chart-card">
             <div class="chart-header">
-                <h3 class="chart-title">Monthly Revenue Trend</h3>
-                <span class="chart-period">Last 6 Months</span>
+                <h3 class="chart-title">Monthly Revenue</h3>
+                <span class="chart-period">Last 6 months (from orders)</span>
             </div>
             <div class="chart-container">
                 <canvas id="revenueChart"></canvas>
@@ -565,24 +576,28 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Minimal chart colors
+        const salesChartData = {{ sales_chart|json_encode|raw }};
+        const categoryChartData = {{ category_chart|json_encode|raw }};
+        const revenueChartData = {{ revenue_chart|json_encode|raw }};
+
         const chartColors = {
-            primary: '#1a1a1a',
+            primary: '#2d4a2b',
             secondary: '#666',
             background: '#f5f5f5',
             grid: '#e5e5e5'
         };
 
-        // Sales Chart (Line Chart)
+        const categoryPalette = ['#2d4a2b', '#3a5a40', '#4a6b50', '#8b5a3a', '#6b8e23', '#5c7a52'];
+
         const salesCtx = document.getElementById('salesChart');
         if (salesCtx) {
             new Chart(salesCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: salesChartData.labels,
                     datasets: [{
-                        label: 'Fashion Sales',
-                        data: [8500, 9200, 7800, 10500, 12000, 11500, 13200],
+                        label: 'Order value (₱)',
+                        data: salesChartData.values,
                         borderColor: chartColors.primary,
                         backgroundColor: 'rgba(45, 74, 43, 0.1)',
                         tension: 0.4,
@@ -639,17 +654,11 @@
             new Chart(categoryCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ["Men's Clothing", "Women's Clothing", "Kids & Baby", "Footwear", "Accessories", "Traditional Wear"],
+                    labels: categoryChartData.labels,
                     datasets: [{
-                        label: 'Fashion Categories',
-                        data: [42, 38, 25, 18, 22, 15],
-                        backgroundColor: [
-                            '#2d4a2b',
-                            '#8b5a3a',
-                            '#4a6b50',
-                            '#3a5a40',
-                            '#6b8e23'
-                        ],
+                        label: 'Products by category',
+                        data: categoryChartData.values,
+                        backgroundColor: categoryChartData.labels.map((_, i) => categoryPalette[i % categoryPalette.length]),
                         borderWidth: 2,
                         hoverOffset: 8
                     }]
@@ -679,10 +688,10 @@
             new Chart(revenueCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                    labels: revenueChartData.labels,
                     datasets: [{
                         label: 'Revenue (₱)',
-                        data: [45000, 52000, 48000, 61000, 55000, 67000],
+                        data: revenueChartData.values,
                         backgroundColor: chartColors.primary,
                         borderColor: chartColors.primary,
                         borderWidth: 0,
