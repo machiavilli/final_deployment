@@ -38,10 +38,10 @@ class UpsertAdminCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $email = (string) $input->getOption('email');
-        $password = (string) $input->getOption('password');
-        $username = (string) $input->getOption('username');
-        $name = (string) $input->getOption('name');
+        $email = strtolower($this->trimCredential((string) $input->getOption('email')));
+        $password = $this->trimCredential((string) $input->getOption('password'));
+        $username = $this->trimCredential((string) $input->getOption('username'));
+        $name = $this->trimCredential((string) $input->getOption('name'));
 
         if ($email === '' || $password === '') {
             $io->error('Both --email and --password are required.');
@@ -93,5 +93,10 @@ class UpsertAdminCommand extends Command
         }
 
         return $candidate;
+    }
+
+    private function trimCredential(string $value): string
+    {
+        return trim($value, " \t\n\r\0\x0B\"'");
     }
 }

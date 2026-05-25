@@ -37,6 +37,8 @@ security:
             form_login:
                 login_path: app_login
                 check_path: app_login
+                username_parameter: _username
+                password_parameter: _password
                 default_target_path: app_staff_home
                 always_use_default_target_path: false
                 success_handler: App\Security\AuthenticationSuccessHandler

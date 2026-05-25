@@ -82,12 +82,15 @@ run_bootstrap() {
 
     if [ -n "${INITIAL_ADMIN_EMAIL:-}" ] && [ -n "${INITIAL_ADMIN_PASSWORD:-}" ]; then
         echo "[bootstrap] Creating or updating admin user from INITIAL_ADMIN_* ..."
+        # Trim whitespace/quotes that Railway sometimes includes in variable values
+        ADMIN_EMAIL="$(echo "${INITIAL_ADMIN_EMAIL}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+        ADMIN_PASSWORD="$(echo "${INITIAL_ADMIN_PASSWORD}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
         php bin/console app:upsert-admin \
-            --email="${INITIAL_ADMIN_EMAIL}" \
-            --password="${INITIAL_ADMIN_PASSWORD}" \
+            --email="${ADMIN_EMAIL}" \
+            --password="${ADMIN_PASSWORD}" \
             --username="${INITIAL_ADMIN_USERNAME:-admin}" \
             --name="${INITIAL_ADMIN_NAME:-Admin}" \
-            --no-interaction || true
+            --no-interaction
     fi
 
     echo "[bootstrap] Installing bundle assets..."
@@ -106,12 +109,8 @@ run_bootstrap() {
     fi
 }
 
-# Start nginx quickly; run slow tasks in background on Railway/production
-if [ "${APP_ENV}" = "prod" ]; then
-    run_bootstrap &
-else
-    run_bootstrap
-fi
+# Run migrations + admin setup before accepting traffic (avoids login before upsert-admin)
+run_bootstrap
 
 nginx -t
 php-fpm -D
