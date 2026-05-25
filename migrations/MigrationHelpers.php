@@ -181,6 +181,67 @@ trait MigrationHelpers
         $this->addSql('DEALLOCATE PREPARE stmt_mod_col');
     }
 
+    protected function renameColumnIfExists(
+        string $table,
+        string $fromColumn,
+        string $toColumn,
+        string $toColumnDefinition,
+    ): void {
+        $tableEscaped = str_replace("'", "''", $table);
+        $fromEscaped = str_replace("'", "''", $fromColumn);
+        $toEscaped = str_replace("'", "''", $toColumn);
+        $alterSql = sprintf('ALTER TABLE `%s` CHANGE %s %s', $table, $fromColumn, $toColumnDefinition);
+        $alterSqlEscaped = str_replace("'", "''", $alterSql);
+
+        $this->addSql(sprintf(
+            "SET @ren_from_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
+            $tableEscaped,
+            $fromEscaped
+        ));
+        $this->addSql(sprintf(
+            "SET @ren_to_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
+            $tableEscaped,
+            $toEscaped
+        ));
+        $this->addSql(sprintf(
+            "SET @ren_col_sql := IF(@ren_from_exists > 0 AND @ren_to_exists = 0, '%s', 'SELECT 1')",
+            $alterSqlEscaped
+        ));
+        $this->addSql('PREPARE stmt_ren_col FROM @ren_col_sql');
+        $this->addSql('EXECUTE stmt_ren_col');
+        $this->addSql('DEALLOCATE PREPARE stmt_ren_col');
+    }
+
+    protected function copyColumnIfBothExist(string $table, string $fromColumn, string $toColumn): void
+    {
+        $tableEscaped = str_replace("'", "''", $table);
+        $fromEscaped = str_replace("'", "''", $fromColumn);
+        $toEscaped = str_replace("'", "''", $toColumn);
+
+        $this->addSql(sprintf(
+            "SET @cpy_from_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
+            $tableEscaped,
+            $fromEscaped
+        ));
+        $this->addSql(sprintf(
+            "SET @cpy_to_exists := (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '%s' AND column_name = '%s')",
+            $tableEscaped,
+            $toEscaped
+        ));
+        $this->addSql(sprintf(
+            "SET @cpy_sql := IF(@cpy_from_exists > 0 AND @cpy_to_exists > 0, 'UPDATE `%s` SET %s = %s WHERE (%s IS NULL OR %s = '''') AND %s IS NOT NULL', 'SELECT 1')",
+            $table,
+            $toColumn,
+            $fromColumn,
+            $toColumn,
+            $toColumn,
+            $fromColumn
+        ));
+        $this->addSql('PREPARE stmt_cpy_col FROM @cpy_sql');
+        $this->addSql('EXECUTE stmt_cpy_col');
+        $this->addSql('DEALLOCATE PREPARE stmt_cpy_col');
+    }
+
     protected function dropColumnIfExists(string $table, string $column): void
     {
         $tableEscaped = str_replace("'", "''", $table);
