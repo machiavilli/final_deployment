@@ -317,8 +317,9 @@
                                 {% if log.user %}
                                     <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;
                                         {% if 'ROLE_ADMIN' in log.user.roles %}background: #f8d7da; color: #721c24;
-                                        {% else %}background: #d1ecf1; color: #0c5460;{% endif %}">
-                                        {% if 'ROLE_ADMIN' in log.user.roles %}ROLE_ADMIN{% else %}ROLE_STAFF{% endif %}
+                                        {% elseif 'ROLE_STAFF' in log.user.roles %}background: #d1ecf1; color: #0c5460;
+                                        {% else %}background: #e8f5e9; color: #2d4a2b;{% endif %}">
+                                        {% if 'ROLE_ADMIN' in log.user.roles %}ROLE_ADMIN{% elseif 'ROLE_STAFF' in log.user.roles %}ROLE_STAFF{% else %}ROLE_USER{% endif %}
                                     </span>
                                 {% else %}
                                     -

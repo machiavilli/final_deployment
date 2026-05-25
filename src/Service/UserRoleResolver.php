@@ -35,7 +35,7 @@ class UserRoleResolver
     /** Customer accounts: storefront access only. */
     public function applyCustomerRoles(User $user): void
     {
-        if (\in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+        if (\in_array('ROLE_ADMIN', $user->getStoredRoles(), true)) {
             return;
         }
 
@@ -44,9 +44,9 @@ class UserRoleResolver
 
     public function applyStaffRoles(User $user): void
     {
-        if (\in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+        if (\in_array('ROLE_ADMIN', $user->getStoredRoles(), true)) {
             $stored = array_values(array_filter(
-                $user->getRoles(),
+                $user->getStoredRoles(),
                 static fn (string $role): bool => 'ROLE_USER' !== $role
             ));
             if (!\in_array('ROLE_STAFF', $stored, true)) {

@@ -100,7 +100,7 @@ class UserController extends AbstractController
                 [
                     'username' => $user->getUsername(),
                     'email' => $user->getEmail(),
-                    'roles' => implode(', ', $user->getRoles())
+                    'roles' => implode(', ', $user->getStoredRoles())
                 ]
             );
 
@@ -186,7 +186,7 @@ class UserController extends AbstractController
                 'name' => $user->getName(),
                 'email' => $user->getEmail(),
                 'username' => $user->getUsername(),
-                'roles' => implode(', ', $user->getRoles()),
+                'roles' => implode(', ', $user->getStoredRoles()),
                 'isActive' => $user->isActive() ? 'true' : 'false',
             ];
             $oldDataString = [
@@ -226,7 +226,7 @@ class UserController extends AbstractController
             $userData = [
                 'username' => $user->getUsername(),
                 'email' => $user->getEmail(),
-                'roles' => implode(', ', $user->getRoles()),
+                'roles' => implode(', ', $user->getStoredRoles()),
             ];
 
             $entityManager->remove($user);
