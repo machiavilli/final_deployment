@@ -86,7 +86,7 @@ class CheckoutService
             $order->setPrice($unitPrice);
             $order->setStatus('pending');
             $order->setOrderDate(new \DateTime());
-            $order->setCreatedBy(null);
+            $order->setCreatedBy($user);
             $order->setOrderNumber($orderNumber);
             $order->setPaymentMethod($paymentMethod);
             $order->setPaymentStatus($paymentStatus);

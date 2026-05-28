@@ -13,6 +13,9 @@ class Notification
     public const TYPE_ORDER_PLACED = 'order_placed';
     public const TYPE_ORDER_STATUS = 'order_status';
     public const TYPE_PAYMENT_STATUS = 'payment_status';
+    public const TYPE_PRODUCT_NEW = 'product_new';
+    public const TYPE_PRODUCT_UPDATED = 'product_updated';
+    public const TYPE_PRODUCT_RESTOCK = 'product_restock';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

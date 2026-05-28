@@ -6,6 +6,8 @@ use App\Repository\ProductRepository;
 use App\Entity\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\PrePersist;
+use Doctrine\ORM\Mapping\PreUpdate;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
@@ -148,5 +150,17 @@ class Product
         $this->stock = max(0, $stock);
 
         return $this;
+    }
+
+    #[PrePersist]
+    #[PreUpdate]
+    public function normalizeRequiredFields(): void
+    {
+        if ($this->description === null) {
+            $this->description = '';
+        }
+        if ($this->image === null || trim((string) $this->image) === '') {
+            $this->image = 'logoMVLLI.png';
+        }
     }
 }

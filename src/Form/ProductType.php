@@ -8,6 +8,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File as FileConstraint;
@@ -26,10 +27,15 @@ class ProductType extends AbstractType
                     'min' => '0',
                 ],
             ])
-            ->add('description')
+            ->add('description', TextareaType::class, [
+                'required' => false,
+                'empty_data' => '',
+            ])
             ->add('stock', NumberType::class, [
                 'label' => 'Stock',
                 'scale' => 0,
+                'required' => false,
+                'empty_data' => '0',
                 'attr' => [
                     'min' => 0,
                     'step' => 1,

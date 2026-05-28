@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\User;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use App\Repository\CategoryRepository;
 use App\Service\ActivityLogService;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,51 +50,49 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/new', name: 'app_product_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $logService): Response
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        ActivityLogService $logService,
+        NotificationService $notificationService,
+    ): Response
     {
         $product = new Product();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Price is already handled by the form (NumberType returns numeric value)
-            $imageFile = $form->get('image')->getData();
+            $this->handleProductImageUpload($form->get('image')->getData(), $product, $slugger);
 
-            if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('images_directory'),
-                        $newFilename
-                    );
-                    $product->setImage($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Error uploading image: ' . $e->getMessage());
-                }
+            $user = $this->getUser();
+            if ($user instanceof User) {
+                $product->setCreatedBy($user);
             }
 
-            // Set createdBy for ownership tracking
-            $product->setCreatedBy($this->getUser());
+            try {
+                $entityManager->persist($product);
+                $entityManager->flush();
+            } catch (\Throwable) {
+                $this->addFlash(
+                    'error',
+                    'Could not save product. Check required fields, upload a valid image, or run database migrations on the server.',
+                );
 
-            $entityManager->persist($product);
-            $entityManager->flush();
+                return $this->render('product/new.html.twig', [
+                    'form' => $form,
+                    'product' => $product,
+                ]);
+            }
 
-            // Log activity - ensure all values are strings
-            $productName = $product->getName() ?? 'Unknown';
-            $productPrice = $product->getPrice() !== null ? (string) number_format($product->getPrice(), 2) : '0.00';
-            
-            $logService->logCreate(
-                $this->getUser(),
-                'Product',
-                $product->getId(),
-                [
-                    'name' => $productName,
-                    'price' => $productPrice
-                ]
+            $this->safeLogProductActivity(
+                $logService,
+                'create',
+                $product,
+                $user instanceof User ? $user : null,
             );
+
+            $this->safeNotifyProduct($notificationService, 'create', $product);
 
             $this->addFlash('success', 'Product added successfully!');
             return $this->redirectToRoute('app_product_index');
@@ -115,7 +115,14 @@ final class ProductController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_product_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Product $product, EntityManagerInterface $entityManager, SluggerInterface $slugger, ActivityLogService $logService): Response
+    public function edit(
+        Request $request,
+        Product $product,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        ActivityLogService $logService,
+        NotificationService $notificationService,
+    ): Response
     {
         // Admin can edit any product
         // Staff can edit any product including those created by admin
@@ -143,41 +150,20 @@ final class ProductController extends AbstractController
             }
             $product->setCategory($category);
             
-            // Handle image upload
-            $imageFile = $form->get('image')->getData();
-
-            if ($imageFile) {
-                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
-
-                try {
-                    $imageFile->move(
-                        $this->getParameter('images_directory'),
-                        $newFilename
-                    );
-                    $product->setImage($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Error uploading image: ' . $e->getMessage());
-                }
-            }
+            $this->handleProductImageUpload($form->get('image')->getData(), $product, $slugger);
 
             $entityManager->persist($product);
             $entityManager->flush();
 
-            // Log activity - ensure all values are strings
-            $productName = $product->getName() ?? 'Unknown';
-            $productPrice = $product->getPrice() !== null ? (string) number_format($product->getPrice(), 2) : '0.00';
-            
-            $logService->logUpdate(
-                $this->getUser(),
-                'Product',
-                $product->getId(),
-                [
-                    'name' => $productName,
-                    'price' => $productPrice
-                ]
+            $user = $this->getUser();
+            $this->safeLogProductActivity(
+                $logService,
+                'update',
+                $product,
+                $user instanceof User ? $user : null,
             );
+
+            $this->safeNotifyProduct($notificationService, 'update', $product);
 
             $this->addFlash('success', 'Product updated successfully!');
             return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
@@ -217,7 +203,8 @@ final class ProductController extends AbstractController
         Request $request,
         Product $product,
         EntityManagerInterface $entityManager,
-        ActivityLogService $logService
+        ActivityLogService $logService,
+        NotificationService $notificationService,
     ): Response {
         // Staff can restock any product including those created by admin
         // No restrictions needed for staff restocking
@@ -242,6 +229,8 @@ final class ProductController extends AbstractController
                     'stock_after' => (string) $product->getStock(),
                 ]);
 
+                $this->safeNotifyProduct($notificationService, 'restock', $product, $amount);
+
                 $this->addFlash('success', 'Stock restocked successfully!');
                 return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
             }
@@ -250,5 +239,76 @@ final class ProductController extends AbstractController
         return $this->render('product/restock.html.twig', [
             'product' => $product,
         ]);
+    }
+
+    private function handleProductImageUpload(mixed $imageFile, Product $product, SluggerInterface $slugger): void
+    {
+        if (!$imageFile) {
+            return;
+        }
+
+        $uploadDir = (string) $this->getParameter('images_directory');
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+            $this->addFlash('error', 'Upload folder is not writable. Contact an administrator.');
+            return;
+        }
+
+        $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug((string) $originalFilename);
+        $extension = $imageFile->guessExtension() ?: 'jpg';
+        $newFilename = $safeFilename . '-' . uniqid() . '.' . $extension;
+
+        try {
+            $imageFile->move($uploadDir, $newFilename);
+            $product->setImage($newFilename);
+        } catch (FileException $e) {
+            $this->addFlash('error', 'Error uploading image: ' . $e->getMessage());
+        }
+    }
+
+    private function safeNotifyProduct(
+        NotificationService $notificationService,
+        string $action,
+        Product $product,
+        int $restockAmount = 0,
+    ): void {
+        try {
+            if ($action === 'create') {
+                $notificationService->notifyProductCreated($product);
+            } elseif ($action === 'update') {
+                $notificationService->notifyProductUpdated($product);
+            } elseif ($action === 'restock' && $restockAmount > 0) {
+                $notificationService->notifyProductRestocked($product, $restockAmount);
+            }
+        } catch (\Throwable) {
+            // Product save must succeed even if notifications fail.
+        }
+    }
+
+    private function safeLogProductActivity(
+        ActivityLogService $logService,
+        string $action,
+        Product $product,
+        ?User $user,
+    ): void {
+        if (!$user || !$product->getId()) {
+            return;
+        }
+
+        $productName = $product->getName() ?? 'Unknown';
+        $productPrice = $product->getPrice() !== null
+            ? (string) number_format($product->getPrice(), 2)
+            : '0.00';
+        $payload = ['name' => $productName, 'price' => $productPrice];
+
+        try {
+            if ($action === 'create') {
+                $logService->logCreate($user, 'Product', $product->getId(), $payload);
+            } else {
+                $logService->logUpdate($user, 'Product', $product->getId(), $payload);
+            }
+        } catch (\Throwable) {
+            // Product save must succeed even if activity logging fails.
+        }
     }
 }
