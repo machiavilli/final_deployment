@@ -423,27 +423,6 @@
         50% { opacity: 0.35; }
     }
 
-    .orders-live-toast {
-        position: fixed;
-        top: 24px;
-        right: 24px;
-        z-index: 9999;
-        background: #2d4a2b;
-        color: #fff;
-        padding: 14px 20px;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        box-shadow: 0 8px 24px rgba(45, 74, 43, 0.35);
-        opacity: 0;
-        transform: translateY(-8px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .orders-live-toast--visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
 </style>
 
 <div
@@ -452,8 +431,6 @@
     data-sync-url="{{ path('app_order_sync') }}"
     data-poll-ms="5000"
 >
-    <div id="ordersLiveToast" class="orders-live-toast" hidden role="status" aria-live="polite"></div>
-
     <!-- Header -->
     <div class="orders-header">
         <h1>
@@ -568,6 +545,9 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     
     <script>
+        // Prevent DataTables from showing browser alert() on row sync issues
+        $.fn.dataTable.ext.errMode = 'none';
+
         $(document).ready(function() {
             $('#ordersTable').DataTable({
                 responsive: true,
@@ -615,24 +595,11 @@
             let lastVersion = null;
             let isRefreshing = false;
             const table = $('#ordersTable').DataTable();
-            const toast = document.getElementById('ordersLiveToast');
 
             function escapeHtml(text) {
                 const div = document.createElement('div');
                 div.textContent = text ?? '';
                 return div.innerHTML;
-            }
-
-            function showToast(message) {
-                if (!toast) return;
-                toast.textContent = message;
-                toast.hidden = false;
-                toast.classList.add('orders-live-toast--visible');
-                clearTimeout(window._ordersLiveToastTimer);
-                window._ordersLiveToastTimer = setTimeout(function() {
-                    toast.classList.remove('orders-live-toast--visible');
-                    setTimeout(function() { toast.hidden = true; }, 300);
-                }, 4000);
             }
 
             function updateStats(stats) {
@@ -649,23 +616,36 @@
                 });
             }
 
+            function cell(value) {
+                return value == null ? '' : String(value);
+            }
+
             function updateTable(orders) {
                 const currentPage = table.page();
+                const currentSearch = table.search();
+                const pageLength = table.page.len();
+
                 table.clear();
-                orders.forEach(function(order) {
-                    table.row.add([
-                        '<span class="order-id">' + escapeHtml(order.orderNumber) + '</span>',
-                        escapeHtml(order.customerName),
-                        escapeHtml(order.productName),
-                        String(order.quantity),
-                        '<span class="price">' + escapeHtml(order.lineTotalFormatted) + '</span>',
-                        '<span class="status-badge ' + order.paymentStatus + '">' + escapeHtml(order.paymentStatusLabel) + '</span><br><small>' + escapeHtml(order.paymentMethodLabel) + '</small>',
-                        '<span class="status-badge ' + order.status + '">' + escapeHtml(order.statusLabel) + '</span>',
-                        escapeHtml(order.orderSource),
-                        order.orderDateLabel,
-                        '<div class="action-buttons"><a href="' + order.showUrl + '" class="btn-action btn-view"><i class="fas fa-eye"></i></a><a href="' + order.editUrl + '" class="btn-action btn-edit"><i class="fas fa-edit"></i></a></div>',
-                    ]);
+
+                const rows = orders.map(function(order) {
+                    return [
+                        '<span class="order-id">' + escapeHtml(cell(order.orderNumber)) + '</span>',
+                        escapeHtml(cell(order.customerName)),
+                        escapeHtml(cell(order.productName)),
+                        cell(order.quantity),
+                        '<span class="price">' + escapeHtml(cell(order.lineTotalFormatted)) + '</span>',
+                        '<span class="status-badge ' + escapeHtml(cell(order.paymentStatus)) + '">' + escapeHtml(cell(order.paymentStatusLabel)) + '</span><br><small>' + escapeHtml(cell(order.paymentMethodLabel)) + '</small>',
+                        '<span class="status-badge ' + escapeHtml(cell(order.status)) + '">' + escapeHtml(cell(order.statusLabel)) + '</span>',
+                        escapeHtml(cell(order.orderSource)),
+                        '<span data-order="' + escapeHtml(cell(order.orderDate)) + '">' + escapeHtml(cell(order.orderDateLabel)) + '</span>',
+                        '<div class="action-buttons"><a href="' + cell(order.showUrl) + '" class="btn-action btn-view"><i class="fas fa-eye"></i></a><a href="' + cell(order.editUrl) + '" class="btn-action btn-edit"><i class="fas fa-edit"></i></a></div>',
+                    ];
                 });
+
+                table.rows.add(rows);
+                table.page.len(pageLength);
+                table.search(currentSearch);
+                table.order([[8, 'desc']]);
                 table.draw(false);
                 if (typeof currentPage === 'number') {
                     table.page(currentPage).draw(false);
@@ -686,11 +666,12 @@
 
                     const isFirst = lastVersion === null;
                     lastVersion = payload.version;
-                    updateStats(payload.stats);
-                    updateTable(payload.orders);
 
-                    if (!isFirst && payload.orders.length > 0) {
-                        showToast('New customer order — list updated automatically');
+                    updateStats(payload.stats);
+
+                    // Skip table rewrite on first poll — page already has correct rows from Twig
+                    if (!isFirst) {
+                        updateTable(payload.orders);
                     }
                 } catch (e) {
                     console.warn('[OrdersLive] sync failed', e);
