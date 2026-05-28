@@ -63,11 +63,21 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
+        align-items: end;
     }
     
     .form-group {
         display: flex;
         flex-direction: column;
+    }
+
+    .form-group--submit {
+        justify-content: flex-end;
+    }
+
+    .form-group--submit .filter-btn {
+        width: 100%;
+        min-height: 48px;
     }
     
     .form-group label {
@@ -77,6 +87,7 @@
         font-weight: 500;
         font-family: 'DM Sans', sans-serif;
     }
+
     
     .form-control {
         width: 100%;
@@ -265,7 +276,7 @@
                 <input type="date" name="end_date" id="end_date" value="{{ end_date ? end_date|date('Y-m-d') : '' }}" class="form-control">
             </div>
             
-            <div class="form-group">
+            <div class="form-group form-group--submit">
                 <button type="submit" class="filter-btn">Filter</button>
             </div>
         </form>

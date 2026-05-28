@@ -8,8 +8,10 @@ use App\Repository\ProductRepository;
 use App\Repository\OrderRepository;
 use App\Service\ActivityLogService;
 use App\Service\NotificationService;
+use App\Service\OrderPanelSyncService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -31,6 +33,15 @@ final class OrderController extends AbstractController
         return $this->render('order/index.html.twig', [
             'orders' => $orders,
         ]);
+    }
+
+    /**
+     * JSON feed for live admin refresh when customers checkout (mobile app).
+     */
+    #[Route('/sync', name: 'app_order_sync', methods: ['GET'])]
+    public function sync(OrderPanelSyncService $syncService): JsonResponse
+    {
+        return $this->json($syncService->buildSyncPayload());
     }
 
     #[Route('/new', name: 'app_order_new', methods: ['GET', 'POST'])]

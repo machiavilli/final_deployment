@@ -394,12 +394,72 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .orders-live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #2e7d32;
+        background: #e8f5e9;
+        padding: 6px 12px;
+        border-radius: 20px;
+        margin-left: 12px;
+        vertical-align: middle;
+    }
+
+    .orders-live-badge::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4caf50;
+        animation: livePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+    }
+
+    .orders-live-toast {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 9999;
+        background: #2d4a2b;
+        color: #fff;
+        padding: 14px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(45, 74, 43, 0.35);
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .orders-live-toast--visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
 </style>
 
-<div class="orders-container">
+<div
+    class="orders-container"
+    id="ordersLiveRoot"
+    data-sync-url="{{ path('app_order_sync') }}"
+    data-poll-ms="5000"
+>
+    <div id="ordersLiveToast" class="orders-live-toast" hidden role="status" aria-live="polite"></div>
+
     <!-- Header -->
     <div class="orders-header">
-        <h1><i class="fas fa-shopping-cart"></i> Orders Management</h1>
+        <h1>
+            <i class="fas fa-shopping-cart"></i> Orders Management
+            <span class="orders-live-badge" id="ordersLiveIndicator">Live</span>
+        </h1>
         <div class="header-actions">
             <a href="{{ path('app_order_new') }}" class="btn-add">
                 <i class="fas fa-plus"></i> New Order
@@ -411,19 +471,19 @@
     <div class="orders-stats">
         <div class="stat-box total">
             <h3>Total Orders</h3>
-            <p class="stat-value">{{ orders|length }}</p>
+            <p class="stat-value" id="statTotal">{{ orders|length }}</p>
         </div>
         <div class="stat-box pending">
             <h3>Pending</h3>
-            <p class="stat-value">{{ orders|filter(o => o.status|lower == 'pending')|length }}</p>
+            <p class="stat-value" id="statPending">{{ orders|filter(o => o.status|lower == 'pending')|length }}</p>
         </div>
         <div class="stat-box completed">
             <h3>Completed</h3>
-            <p class="stat-value">{{ orders|filter(o => o.status|lower == 'completed')|length }}</p>
+            <p class="stat-value" id="statCompleted">{{ orders|filter(o => o.status|lower == 'completed')|length }}</p>
         </div>
         <div class="stat-box cancelled">
             <h3>Cancelled</h3>
-            <p class="stat-value">{{ orders|filter(o => o.status|lower == 'cancelled')|length }}</p>
+            <p class="stat-value" id="statCancelled">{{ orders|filter(o => o.status|lower == 'cancelled')|length }}</p>
         </div>
     </div>
 
@@ -534,8 +594,113 @@
                 dom: '<"top"lf>rt<"bottom"ip><"clear">',
                 initComplete: function() {
                     console.log('DataTable initialized successfully');
+                    if (typeof window.initOrdersLiveRefresh === 'function') {
+                        window.initOrdersLiveRefresh();
+                    }
                 }
             });
         });
+
+        /**
+         * Polls /order/sync every 5s — updates table when a customer checks out on mobile.
+         */
+        window.initOrdersLiveRefresh = function() {
+            const root = document.getElementById('ordersLiveRoot');
+            if (!root || !$.fn.DataTable.isDataTable('#ordersTable')) {
+                return;
+            }
+
+            const syncUrl = root.dataset.syncUrl;
+            const pollMs = parseInt(root.dataset.pollMs || '5000', 10);
+            let lastVersion = null;
+            let isRefreshing = false;
+            const table = $('#ordersTable').DataTable();
+            const toast = document.getElementById('ordersLiveToast');
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text ?? '';
+                return div.innerHTML;
+            }
+
+            function showToast(message) {
+                if (!toast) return;
+                toast.textContent = message;
+                toast.hidden = false;
+                toast.classList.add('orders-live-toast--visible');
+                clearTimeout(window._ordersLiveToastTimer);
+                window._ordersLiveToastTimer = setTimeout(function() {
+                    toast.classList.remove('orders-live-toast--visible');
+                    setTimeout(function() { toast.hidden = true; }, 300);
+                }, 4000);
+            }
+
+            function updateStats(stats) {
+                if (!stats) return;
+                const map = {
+                    statTotal: stats.total,
+                    statPending: stats.pending,
+                    statCompleted: stats.completed,
+                    statCancelled: stats.cancelled,
+                };
+                Object.keys(map).forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = map[id];
+                });
+            }
+
+            function updateTable(orders) {
+                const currentPage = table.page();
+                table.clear();
+                orders.forEach(function(order) {
+                    table.row.add([
+                        '<span class="order-id">' + escapeHtml(order.orderNumber) + '</span>',
+                        escapeHtml(order.customerName),
+                        escapeHtml(order.productName),
+                        String(order.quantity),
+                        '<span class="price">' + escapeHtml(order.lineTotalFormatted) + '</span>',
+                        '<span class="status-badge ' + order.paymentStatus + '">' + escapeHtml(order.paymentStatusLabel) + '</span><br><small>' + escapeHtml(order.paymentMethodLabel) + '</small>',
+                        '<span class="status-badge ' + order.status + '">' + escapeHtml(order.statusLabel) + '</span>',
+                        escapeHtml(order.orderSource),
+                        order.orderDateLabel,
+                        '<div class="action-buttons"><a href="' + order.showUrl + '" class="btn-action btn-view"><i class="fas fa-eye"></i></a><a href="' + order.editUrl + '" class="btn-action btn-edit"><i class="fas fa-edit"></i></a></div>',
+                    ]);
+                });
+                table.draw(false);
+                if (typeof currentPage === 'number') {
+                    table.page(currentPage).draw(false);
+                }
+            }
+
+            async function poll() {
+                if (isRefreshing) return;
+                isRefreshing = true;
+                try {
+                    const response = await fetch(syncUrl, {
+                        credentials: 'same-origin',
+                        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    });
+                    if (!response.ok) return;
+                    const payload = await response.json();
+                    if (payload.version === lastVersion) return;
+
+                    const isFirst = lastVersion === null;
+                    lastVersion = payload.version;
+                    updateStats(payload.stats);
+                    updateTable(payload.orders);
+
+                    if (!isFirst && payload.orders.length > 0) {
+                        showToast('New customer order — list updated automatically');
+                    }
+                } catch (e) {
+                    console.warn('[OrdersLive] sync failed', e);
+                } finally {
+                    isRefreshing = false;
+                }
+            }
+
+            poll();
+            setInterval(poll, pollMs);
+        };
     </script>
 {% endblock %}
