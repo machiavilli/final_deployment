@@ -9,6 +9,7 @@ use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -33,6 +34,22 @@ class MobileNotificationController extends AbstractController
         $response = ApiResponse::success('Notifications retrieved', $data, [
             'unread_count' => $unread,
             'total' => count($data),
+        ]);
+
+        return $this->json($response->toArray());
+    }
+
+    #[Route('/poll', name: 'api_mobile_notifications_poll', methods: ['GET'])]
+    public function poll(Request $request): JsonResponse
+    {
+        $user = $this->requireUser();
+        $sinceId = max(0, (int) $request->query->get('since_id', 0));
+        $items = $this->notificationRepository->findForUserSinceId($user, $sinceId);
+        $data = array_map(fn (Notification $n) => $this->serialize($n), $items);
+
+        $response = ApiResponse::success('New notifications', $data, [
+            'since_id' => $sinceId,
+            'count' => count($data),
         ]);
 
         return $this->json($response->toArray());

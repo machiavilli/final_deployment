@@ -41,4 +41,20 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * @return list<Notification>
+     */
+    public function findForUserSinceId(User $user, int $sinceId, int $limit = 30): array
+    {
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.id > :sinceId')
+            ->setParameter('user', $user)
+            ->setParameter('sinceId', max(0, $sinceId))
+            ->orderBy('n.id', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }
