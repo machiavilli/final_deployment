@@ -65,6 +65,85 @@ final class AdminDashboardService
         ];
     }
 
+    /**
+     * JSON payload for admin dashboard live polling (orders, revenue, charts).
+     *
+     * @return array<string, mixed>
+     */
+    public function buildSyncPayload(): array
+    {
+        $data = $this->getDashboardData();
+
+        return [
+            'version' => $this->computeSyncVersion($data),
+            'total_products' => $data['total_products'],
+            'total_orders' => $data['total_orders'],
+            'total_customers' => $data['total_customers'],
+            'total_revenue' => round($data['total_revenue'], 2),
+            'orders_change_pct' => $data['orders_change_pct'],
+            'customers_change_pct' => $data['customers_change_pct'],
+            'revenue_change_pct' => $data['revenue_change_pct'],
+            'sales_chart' => $data['sales_chart'],
+            'category_chart' => $data['category_chart'],
+            'revenue_chart' => $data['revenue_chart'],
+            'recent_activities' => $this->serializeActivities($data['recent_activities']),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function computeSyncVersion(array $data): string
+    {
+        $latestActivityId = 0;
+        foreach ($data['recent_activities'] as $activity) {
+            if ($activity instanceof \App\Entity\ActivityLog && $activity->getId()) {
+                $latestActivityId = max($latestActivityId, (int) $activity->getId());
+            }
+        }
+
+        return sprintf(
+            'o%d-c%d-r%.2f-a%d',
+            (int) $data['total_orders'],
+            (int) $data['total_customers'],
+            (float) $data['total_revenue'],
+            $latestActivityId,
+        );
+    }
+
+    /**
+     * @param iterable<mixed> $activities
+     *
+     * @return list<array<string, string>>
+     */
+    private function serializeActivities(iterable $activities): array
+    {
+        $rows = [];
+        foreach ($activities as $activity) {
+            if (!$activity instanceof \App\Entity\ActivityLog) {
+                continue;
+            }
+            $action = (string) $activity->getAction();
+            $rows[] = [
+                'username' => $activity->getUser()?->getUsername() ?? 'System',
+                'action' => $action,
+                'description' => (string) ($activity->getDescription()
+                    ?: $action . ' ' . $activity->getEntityType()),
+                'timestamp' => $activity->getTimestamp()?->format('Y-m-d H:i:s') ?? '',
+                'icon' => match ($action) {
+                    'CREATE' => 'plus',
+                    'UPDATE' => 'edit',
+                    'DELETE' => 'trash',
+                    'LOGIN' => 'sign-in-alt',
+                    'LOGOUT' => 'sign-out-alt',
+                    default => 'bell',
+                },
+            ];
+        }
+
+        return $rows;
+    }
+
     private function safeCount(string $entityClass): int
     {
         try {

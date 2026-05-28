@@ -366,12 +366,74 @@
             padding: 20px;
         }
     }
+
+    .dashboard-live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #2e7d32;
+        background: #e8f5e9;
+        padding: 6px 12px;
+        border-radius: 20px;
+        margin-left: 12px;
+        vertical-align: middle;
+    }
+
+    .dashboard-live-badge::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4caf50;
+        animation: dashboardLivePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes dashboardLivePulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+    }
+
+    .dashboard-live-toast {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 9999;
+        background: #2d4a2b;
+        color: #fff;
+        padding: 14px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(45, 74, 43, 0.35);
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+        max-width: 340px;
+    }
+
+    .dashboard-live-toast--visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
 </style>
 
-<div class="dashboard-container">
+<div
+    class="dashboard-container"
+    id="dashboardLiveRoot"
+    data-sync-url="{{ path('app_admin_dashboard_sync') }}"
+    data-poll-ms="5000"
+>
+    <div id="dashboardLiveToast" class="dashboard-live-toast" hidden role="status" aria-live="polite"></div>
+
     <!-- Header -->
     <div class="dashboard-header">
-        <h1>MVLLI Dashboard</h1>
+        <h1>
+            MVLLI Dashboard
+            <span class="dashboard-live-badge" id="dashboardLiveIndicator">Live</span>
+        </h1>
         <p>Welcome back! Here's an overview of your fashion store.</p>
     </div>
 
@@ -384,7 +446,7 @@
                     <i class="fas fa-box"></i>
                 </div>
             </div>
-            <div class="stat-value">{{ total_products|default(0) }}</div>
+            <div class="stat-value" id="statProducts">{{ total_products|default(0) }}</div>
             <div class="stat-change">
                 <span>Active in catalog</span>
             </div>
@@ -397,15 +459,15 @@
                     <i class="fas fa-shopping-cart"></i>
                 </div>
             </div>
-            <div class="stat-value">{{ total_orders|default(0) }}</div>
+            <div class="stat-value" id="statOrders">{{ total_orders|default(0) }}</div>
+            <div class="stat-change" id="statOrdersChange">
             {% if orders_change_pct is not null %}
-            <div class="stat-change {% if orders_change_pct >= 0 %}positive{% endif %}">
                 <i class="fas fa-arrow-{% if orders_change_pct >= 0 %}up{% else %}down{% endif %}"></i>
                 <span>{{ orders_change_pct|abs }}% vs prior 30 days</span>
-            </div>
             {% else %}
-            <div class="stat-change"><span>Last 30 days</span></div>
+                <span>Last 30 days</span>
             {% endif %}
+            </div>
         </div>
 
         <div class="stat-card">
@@ -415,15 +477,15 @@
                     <i class="fas fa-user-friends"></i>
                 </div>
             </div>
-            <div class="stat-value">{{ total_customers|default(0) }}</div>
+            <div class="stat-value" id="statCustomers">{{ total_customers|default(0) }}</div>
+            <div class="stat-change" id="statCustomersChange">
             {% if customers_change_pct is not null %}
-            <div class="stat-change {% if customers_change_pct >= 0 %}positive{% endif %}">
                 <i class="fas fa-arrow-{% if customers_change_pct >= 0 %}up{% else %}down{% endif %}"></i>
                 <span>{{ customers_change_pct|abs }}% new signups vs prior 30 days</span>
-            </div>
             {% else %}
-            <div class="stat-change"><span>Registered accounts</span></div>
+                <span>Registered accounts</span>
             {% endif %}
+            </div>
         </div>
 
         <div class="stat-card">
@@ -433,15 +495,15 @@
                     <i class="fas fa-dollar-sign"></i>
                 </div>
             </div>
-            <div class="stat-value">₱{{ total_revenue|default(0)|number_format(2) }}</div>
+            <div class="stat-value" id="statRevenue">₱{{ total_revenue|default(0)|number_format(2) }}</div>
+            <div class="stat-change" id="statRevenueChange">
             {% if revenue_change_pct is not null %}
-            <div class="stat-change {% if revenue_change_pct >= 0 %}positive{% endif %}">
                 <i class="fas fa-arrow-{% if revenue_change_pct >= 0 %}up{% else %}down{% endif %}"></i>
                 <span>{{ revenue_change_pct|abs }}% vs prior 30 days</span>
-            </div>
             {% else %}
-            <div class="stat-change"><span>All-time order value</span></div>
+                <span>All-time order value</span>
             {% endif %}
+            </div>
         </div>
     </div>
 
@@ -534,7 +596,7 @@
     <!-- Recent Activity -->
     <div class="recent-activity">
         <h2 class="section-title">Recent Activity</h2>
-        
+        <div id="recentActivityList">
         {% if recent_activities is defined and recent_activities|length > 0 %}
             {% for activity in recent_activities %}
                 <div class="activity-item">
@@ -568,6 +630,7 @@
                 <p>No recent activity to display</p>
             </div>
         {% endif %}
+        </div>
     </div>
 </div>
 
@@ -575,6 +638,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
+    const categoryPalette = ['#2d4a2b', '#3a5a40', '#4a6b50', '#8b5a3a', '#6b8e23', '#5c7a52'];
+
     document.addEventListener('DOMContentLoaded', function() {
         const salesChartData = {{ sales_chart|json_encode|raw }};
         const categoryChartData = {{ category_chart|json_encode|raw }};
@@ -587,11 +652,13 @@
             grid: '#e5e5e5'
         };
 
-        const categoryPalette = ['#2d4a2b', '#3a5a40', '#4a6b50', '#8b5a3a', '#6b8e23', '#5c7a52'];
+        let salesChartInstance = null;
+        let categoryChartInstance = null;
+        let revenueChartInstance = null;
 
         const salesCtx = document.getElementById('salesChart');
         if (salesCtx) {
-            new Chart(salesCtx, {
+            salesChartInstance = new Chart(salesCtx, {
                 type: 'line',
                 data: {
                     labels: salesChartData.labels,
@@ -651,7 +718,7 @@
         // Category Chart (Doughnut Chart)
         const categoryCtx = document.getElementById('categoryChart');
         if (categoryCtx) {
-            new Chart(categoryCtx, {
+            categoryChartInstance = new Chart(categoryCtx, {
                 type: 'doughnut',
                 data: {
                     labels: categoryChartData.labels,
@@ -685,7 +752,7 @@
         // Revenue Chart (Bar Chart)
         const revenueCtx = document.getElementById('revenueChart');
         if (revenueCtx) {
-            new Chart(revenueCtx, {
+            revenueChartInstance = new Chart(revenueCtx, {
                 type: 'bar',
                 data: {
                     labels: revenueChartData.labels,
@@ -739,6 +806,146 @@
                 }
             });
         }
+
+        initDashboardLiveRefresh(salesChartInstance, categoryChartInstance, revenueChartInstance);
     });
+
+    function formatPeso(amount) {
+        return '₱' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderChangeHtml(pct, fallbackText, suffix) {
+        if (pct === null || pct === undefined) {
+            return '<span>' + fallbackText + '</span>';
+        }
+        const positive = pct >= 0;
+        return '<i class="fas fa-arrow-' + (positive ? 'up' : 'down') + '"></i><span>' +
+            Math.abs(pct) + '% ' + suffix + '</span>';
+    }
+
+    function renderActivities(activities) {
+        if (!activities || activities.length === 0) {
+            return '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent activity to display</p></div>';
+        }
+        return activities.map(function(a) {
+            return '<div class="activity-item">' +
+                '<div class="activity-icon"><i class="fas fa-' + a.icon + '"></i></div>' +
+                '<div class="activity-content"><p><strong>' + escapeHtml(a.username) + '</strong> - ' +
+                escapeHtml(a.description) + '</p><span class="activity-time">' + escapeHtml(a.timestamp) +
+                '</span></div></div>';
+        }).join('');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text ?? '';
+        return div.innerHTML;
+    }
+
+    function initDashboardLiveRefresh(salesChart, categoryChart, revenueChart) {
+        const root = document.getElementById('dashboardLiveRoot');
+        if (!root) return;
+
+        const syncUrl = root.dataset.syncUrl;
+        const pollMs = parseInt(root.dataset.pollMs || '5000', 10);
+        const toastEl = document.getElementById('dashboardLiveToast');
+        let lastVersion = null;
+        let isRefreshing = false;
+
+        function showToast(message) {
+            if (!toastEl) return;
+            toastEl.textContent = message;
+            toastEl.hidden = false;
+            toastEl.classList.add('dashboard-live-toast--visible');
+            clearTimeout(window._dashboardLiveToastTimer);
+            window._dashboardLiveToastTimer = setTimeout(function() {
+                toastEl.classList.remove('dashboard-live-toast--visible');
+                setTimeout(function() { toastEl.hidden = true; }, 300);
+            }, 4500);
+        }
+
+        function updateCharts(payload) {
+            if (salesChart && payload.sales_chart) {
+                salesChart.data.labels = payload.sales_chart.labels;
+                salesChart.data.datasets[0].data = payload.sales_chart.values;
+                salesChart.update('none');
+            }
+            if (categoryChart && payload.category_chart) {
+                categoryChart.data.labels = payload.category_chart.labels;
+                categoryChart.data.datasets[0].data = payload.category_chart.values;
+                categoryChart.data.datasets[0].backgroundColor = payload.category_chart.labels.map(function(_, i) {
+                    return categoryPalette[i % categoryPalette.length];
+                });
+                categoryChart.update('none');
+            }
+            if (revenueChart && payload.revenue_chart) {
+                revenueChart.data.labels = payload.revenue_chart.labels;
+                revenueChart.data.datasets[0].data = payload.revenue_chart.values;
+                revenueChart.update('none');
+            }
+        }
+
+        function applyPayload(payload, showNotification) {
+            const elProducts = document.getElementById('statProducts');
+            const elOrders = document.getElementById('statOrders');
+            const elCustomers = document.getElementById('statCustomers');
+            const elRevenue = document.getElementById('statRevenue');
+            const elOrdersChange = document.getElementById('statOrdersChange');
+            const elCustomersChange = document.getElementById('statCustomersChange');
+            const elRevenueChange = document.getElementById('statRevenueChange');
+            const activityList = document.getElementById('recentActivityList');
+
+            if (elProducts) elProducts.textContent = payload.total_products;
+            if (elOrders) elOrders.textContent = payload.total_orders;
+            if (elCustomers) elCustomers.textContent = payload.total_customers;
+            if (elRevenue) elRevenue.textContent = formatPeso(payload.total_revenue);
+            function setChangeEl(el, pct, fallback, suffix) {
+                if (!el) return;
+                el.className = 'stat-change' + (pct !== null && pct !== undefined && pct >= 0 ? ' positive' : '');
+                el.innerHTML = renderChangeHtml(pct, fallback, suffix);
+            }
+            setChangeEl(elOrdersChange, payload.orders_change_pct, 'Last 30 days', 'vs prior 30 days');
+            setChangeEl(elCustomersChange, payload.customers_change_pct, 'Registered accounts', 'new signups vs prior 30 days');
+            setChangeEl(elRevenueChange, payload.revenue_change_pct, 'All-time order value', 'vs prior 30 days');
+
+            updateCharts(payload);
+
+            if (activityList) {
+                activityList.innerHTML = renderActivities(payload.recent_activities);
+            }
+
+            if (showNotification) {
+                showToast('Dashboard updated — new order received');
+            }
+        }
+
+        async function poll() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+            try {
+                const response = await fetch(syncUrl, {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!response.ok) return;
+                const payload = await response.json();
+                if (payload.version === lastVersion) return;
+
+                const isFirst = lastVersion === null;
+                lastVersion = payload.version;
+
+                if (!isFirst) {
+                    applyPayload(payload, true);
+                }
+            } catch (e) {
+                console.warn('[DashboardLive] sync failed', e);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        poll();
+        setInterval(poll, pollMs);
+    }
 </script>
 {% endblock %}
